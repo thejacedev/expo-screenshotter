@@ -16,7 +16,8 @@ export async function takeScreenshots(config: ScreenshotConfig): Promise<void> {
     fullPage = false,
     useDeviceFrame = false,
     deviceType = 'iphone',
-    iphoneOptions = { pill: true, color: 'Space Black' }
+    iphoneOptions = { pill: true, color: 'Space Black' },
+    androidOptions = { size: 'medium', color: 'black' }
   } = config;
   
   // Ensure output directory exists
@@ -60,7 +61,7 @@ export async function takeScreenshots(config: ScreenshotConfig): Promise<void> {
       
       // Take screenshots for each size
       for (const size of sizes) {
-        await takeScreenshotForSize(page, view, size, viewDir, fullPage, useDeviceFrame, deviceType, iphoneOptions);
+        await takeScreenshotForSize(page, view, size, viewDir, fullPage, useDeviceFrame, deviceType, iphoneOptions, androidOptions);
       }
     }
   } finally {
@@ -76,7 +77,8 @@ async function takeScreenshotForSize(
   defaultFullPage: boolean,
   defaultUseDeviceFrame: boolean,
   defaultDeviceType: 'iphone' | 'android',
-  defaultIphoneOptions: { pill?: boolean; color?: string }
+  defaultIphoneOptions: { pill?: boolean; color?: string },
+  defaultAndroidOptions: { size?: 'compact' | 'medium'; color?: 'black' | 'silver' }
 ): Promise<void> {
   const { width, height, name, scrollX = 0, scrollY = 0 } = size;
   
@@ -94,6 +96,9 @@ async function takeScreenshotForSize(
   // Determine iPhone options
   const iphoneOptions = size.iphoneOptions || defaultIphoneOptions;
   
+  // Determine Android options
+  const androidOptions = size.androidOptions || defaultAndroidOptions;
+  
   // Log what we're doing
   let sizeDescription = `${name} (${width}x${height})`;
   if (scrollX > 0 || scrollY > 0) {
@@ -103,6 +108,8 @@ async function takeScreenshotForSize(
     if (deviceType === 'iphone') {
       const pillType = iphoneOptions.pill ? 'pill' : 'notch';
       sizeDescription += ` with ${deviceType} frame (${pillType}, ${iphoneOptions.color})`;
+    } else if (deviceType === 'android') {
+      sizeDescription += ` with ${deviceType} frame (${androidOptions.size}, ${androidOptions.color})`;
     } else {
       sizeDescription += ` with ${deviceType} frame`;
     }
@@ -137,6 +144,10 @@ async function takeScreenshotForSize(
       const pillType = iphoneOptions.pill ? 'pill' : 'notch';
       const color = iphoneOptions.color || 'Space Black';
       filename += `_${deviceType}_${pillType}_${sanitizeFilename(color)}`;
+    } else if (deviceType === 'android') {
+      const size = androidOptions.size || 'medium';
+      const color = androidOptions.color || 'black';
+      filename += `_${deviceType}_${size}_${color}`;
     } else {
       filename += `_${deviceType}_frame`;
     }
@@ -157,6 +168,8 @@ async function takeScreenshotForSize(
   if (useDeviceFrame) {
     if (deviceType === 'iphone') {
       console.log(chalk.gray(`Applying ${deviceType} frame (${iphoneOptions.pill ? 'pill' : 'notch'}, ${iphoneOptions.color || 'Space Black'})...`));
+    } else if (deviceType === 'android') {
+      console.log(chalk.gray(`Applying ${deviceType} frame (${androidOptions.size || 'medium'}, ${androidOptions.color || 'black'})...`));
     } else {
       console.log(chalk.gray(`Applying ${deviceType} frame...`));
     }
@@ -165,7 +178,7 @@ async function takeScreenshotForSize(
     const framedOutputPath = path.join(outputDir, `framed_${filename}`);
     
     // Apply the device frame
-    await applyDeviceFrame(outputPath, deviceType, framedOutputPath, iphoneOptions);
+    await applyDeviceFrame(outputPath, deviceType, framedOutputPath, iphoneOptions, androidOptions);
     
     // Replace the original screenshot with the framed one
     await fs.move(framedOutputPath, outputPath, { overwrite: true });

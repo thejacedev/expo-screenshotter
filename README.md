@@ -17,8 +17,9 @@ A command-line tool for automatically taking screenshots of Expo web apps at dif
 - Supports custom viewport configurations
 - **NEW:** Place screenshots inside device frames (iPhone or Android)
 - **NEW:** Multiple iPhone frame styles (pill or notch) and colors
+- **NEW:** Android frames in different sizes (compact or medium) and colors
 
-> **Note:** Device framing is now fully implemented for iPhone frames. The tool will take your screenshot and overlay the device frame on top of it, maintaining the screenshot's dimensions. Android frames will be added in a future update.
+> **Note:** Device framing is fully implemented for both iPhone and Android frames. The tool will take your screenshot and overlay the device frame on top of it, maintaining the screenshot's dimensions.
 
 ## Installation
 
@@ -28,9 +29,10 @@ npm install -g expo-screenshotter
 
 ### Device Frame Assets
 
-To use the device frame feature, you need to have the frame images in the correct location. The tool looks for iPhone frame images in the `src/assets/iphones` directory.
+To use the device frame feature, you need to have the frame images in the correct location.
 
-The iPhone frame images should follow this naming convention:
+#### iPhone Frames
+The tool looks for iPhone frame images in the `src/assets/iphones` directory with this naming convention:
 - `Pill=true, Color=Space Black.png`
 - `Pill=true, Color=Gold.png`
 - `Pill=true, Color=Silver.png`
@@ -40,7 +42,14 @@ The iPhone frame images should follow this naming convention:
 - `Pill=False, Color=Red.png`
 - `Pill=False, Color=Blue.png`
 
-If you're using this tool as a dependency in your project, you may need to create the `src/assets/iphones` directory and add the frame images manually.
+#### Android Frames
+The tool looks for Android frame images in the `src/assets/android` directory with this naming convention:
+- `Android Compact Black.png`
+- `Android Compact Silver.png`
+- `Android Medium Black.png`
+- `Android Medium Silver.png`
+
+If you're using this tool as a dependency in your project, you may need to create the appropriate asset directories and add the frame images manually.
 
 ## Usage
 
@@ -146,9 +155,37 @@ The configuration file controls all aspects of the screenshot process. Here's an
     {
       "width": 360,
       "height": 740,
-      "name": "Android with Frame",
+      "name": "Android Medium Black",
       "useDeviceFrame": true,
-      "deviceType": "android"
+      "deviceType": "android",
+      "androidOptions": {
+        "size": "medium",
+        "color": "black"
+      }
+    },
+    {
+      "width": 360,
+      "height": 740,
+      "name": "Android Compact Silver",
+      "useDeviceFrame": true,
+      "deviceType": "android",
+      "androidOptions": {
+        "size": "compact",
+        "color": "silver"
+      }
+    },
+    {
+      "width": 360,
+      "height": 740,
+      "name": "Android with Custom Size",
+      "useDeviceFrame": true,
+      "deviceType": "android",
+      "androidOptions": {
+        "size": "medium",
+        "color": "black",
+        "width": 1080,
+        "height": 2340
+      }
     }
   ],
   "outputDir": "./screenshots",
@@ -160,6 +197,10 @@ The configuration file controls all aspects of the screenshot process. Here's an
   "iphoneOptions": {
     "pill": true,
     "color": "Space Black"
+  },
+  "androidOptions": {
+    "size": "medium",
+    "color": "black"
   }
 }
 
@@ -178,6 +219,11 @@ The configuration file controls all aspects of the screenshot process. Here's an
   - `color`: iPhone color ('Gold', 'Space Black', 'Silver', 'Deep Purple', 'Starlight', 'Midnight', 'Red', 'Blue')
   - `width`: Optional target width for the final image (for custom resizing)
   - `height`: Optional target height for the final image (for custom resizing)
+- `androidOptions`: Options for Android frames:
+  - `size`: Android device size ('compact' or 'medium')
+  - `color`: Android device color ('black' or 'silver')
+  - `width`: Optional target width for the final image (for custom resizing)
+  - `height`: Optional target height for the final image (for custom resizing)
 
 #### Per-Size Options
 Each size in the `sizes` array can have these additional options:
@@ -187,6 +233,8 @@ Each size in the `sizes` array can have these additional options:
 - `useDeviceFrame`: Override the global useDeviceFrame setting for this specific size
 - `deviceType`: Override the global deviceType setting for this specific size
 - `iphoneOptions`: Override the global iPhone frame options for this specific size
+  - Including `width` and `height` properties to resize the final framed image to specific dimensions
+- `androidOptions`: Override the global Android frame options for this specific size
   - Including `width` and `height` properties to resize the final framed image to specific dimensions
 
 For example, to wait for a specific element and capture a full-page screenshot with device frames:
@@ -236,30 +284,67 @@ For example, to wait for a specific element and capture a full-page screenshot w
       }
     },
     {
-      "name": "Android Frame",
+      "name": "Android Medium Black",
       "width": 360,
       "height": 740,
-      "deviceType": "android"
+      "deviceType": "android",
+      "androidOptions": {
+        "size": "medium",
+        "color": "black"
+      }
+    },
+    {
+      "name": "Android Compact Silver",
+      "width": 360,
+      "height": 740,
+      "deviceType": "android",
+      "androidOptions": {
+        "size": "compact",
+        "color": "silver"
+      }
+    },
+    {
+      "name": "Android with Custom Size",
+      "width": 360,
+      "height": 740,
+      "useDeviceFrame": true,
+      "deviceType": "android",
+      "androidOptions": {
+        "size": "medium",
+        "color": "black",
+        "width": 1080,
+        "height": 2340
+      }
     }
   ]
 }
 ```
 
-### Available iPhone Frame Options
+### Available Device Frame Options
 
-The following iPhone frame options are available:
+#### iPhone Frames
 
-#### Pill-style (Dynamic Island)
+##### Pill-style (Dynamic Island)
 - Gold
 - Space Black
 - Silver
 - Deep Purple
 
-#### Notch-style
+##### Notch-style
 - Starlight
 - Midnight
 - Red
 - Blue
+
+#### Android Frames
+
+##### Sizes
+- Compact
+- Medium
+
+##### Colors
+- Black
+- Silver
 
 ## Development
 
@@ -312,4 +397,7 @@ Here are some examples of screenshots taken with expo-screenshotter:
 ![iPhone Notch Frame](examples/add_logs_iphone_x_with_notch_frame_iphone_notch_midnight.png)
 
 ### With iPhone Pill Frame (Gold)
-![iPhone Pill Frame](examples/add_logs_iphone_x_with_gold_frame_iphone_pill_gold.png) 
+![iPhone Pill Frame](examples/add_logs_iphone_x_with_gold_frame_iphone_pill_gold.png)
+
+### With Android Frame
+![Android Frame](examples/add_logs_iphone_x_with_android_medium_black.png) 

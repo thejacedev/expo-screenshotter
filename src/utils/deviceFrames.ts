@@ -9,21 +9,25 @@ import puppeteer from 'puppeteer';
  * @param deviceType Type of device frame to use ('iphone' or 'android')
  * @param outputPath Path to save the framed screenshot
  * @param iphoneOptions Options for iPhone frames (pill style, color, and optional target dimensions)
+ * @param androidOptions Options for Android frames (size and color)
  */
 export async function applyDeviceFrame(
   screenshotPath: string,
   deviceType: 'iphone' | 'android',
   outputPath: string,
-  iphoneOptions?: { pill?: boolean; color?: string; width?: number; height?: number }
+  iphoneOptions?: { pill?: boolean; color?: string; width?: number; height?: number },
+  androidOptions?: { size?: 'compact' | 'medium'; color?: 'black' | 'silver'; width?: number; height?: number }
 ): Promise<void> {
   try {
     if (deviceType === 'iphone') {
       // Use real iPhone frames
       await applyIPhoneFrame(screenshotPath, outputPath, iphoneOptions);
+    } else if (deviceType === 'android') {
+      // Use real Android frames
+      await applyAndroidFrame(screenshotPath, outputPath, androidOptions);
     } else {
-      // For Android, we'll just copy the screenshot for now
-      // In the future, this can be updated to use real Android frames
-      console.log(chalk.yellow('Android frames are not yet implemented. Using original screenshot.'));
+      // For unknown device types, just copy the screenshot
+      console.log(chalk.yellow(`Unknown device type: ${deviceType}. Using original screenshot.`));
       await fs.copy(screenshotPath, outputPath);
     }
   } catch (error) {
@@ -51,13 +55,85 @@ function getAssetsPath(): string {
   ];
 
   for (const possiblePath of possiblePaths) {
-    if (fs.existsSync(path.join(possiblePath, 'iphones'))) {
+    if (fs.existsSync(path.join(possiblePath, 'iphones')) || fs.existsSync(path.join(possiblePath, 'android'))) {
       return possiblePath;
     }
   }
 
   // If no valid path is found, return the first one (will likely fail, but with a clear error)
   return possiblePaths[0];
+}
+
+/**
+ * Apply an Android frame to a screenshot by overlaying the frame on top of the screenshot
+ * @param screenshotPath Path to the screenshot
+ * @param outputPath Path to save the framed screenshot
+ * @param options Android frame options (size, color, and optional target dimensions)
+ */
+async function applyAndroidFrame(
+  screenshotPath: string,
+  outputPath: string,
+  options?: { size?: 'compact' | 'medium'; color?: 'black' | 'silver'; width?: number; height?: number }
+): Promise<void> {
+  // Default options
+  const size = options?.size ?? 'medium';
+  const color = options?.color ?? 'black';
+  const targetWidth = options?.width;
+  const targetHeight = options?.height;
+  
+  // Get the assets path
+  const assetsPath = getAssetsPath();
+  
+  // Construct the frame filename
+  const frameFilename = `Android ${size.charAt(0).toUpperCase() + size.slice(1)} ${color.charAt(0).toUpperCase() + color.slice(1)}.png`;
+  const framePath = path.join(assetsPath, 'android', frameFilename);
+  
+  console.log(chalk.gray(`Looking for Android frame at: ${framePath}`));
+  
+  // Check if the frame file exists
+  if (!await fs.pathExists(framePath)) {
+    console.warn(chalk.yellow(`Android frame not found: ${frameFilename}. Looking for any available frame...`));
+    
+    // Try to find any available frame
+    const androidDir = path.join(assetsPath, 'android');
+    let defaultFramePath = '';
+    
+    if (await fs.pathExists(androidDir)) {
+      try {
+        const files = await fs.readdir(androidDir);
+        if (files.length > 0) {
+          defaultFramePath = path.join(androidDir, files[0]);
+          console.log(chalk.gray(`Using available frame: ${files[0]}`));
+        }
+      } catch (error) {
+        console.error(chalk.red('Error reading Android frames directory:'), error);
+      }
+    }
+    
+    if (!defaultFramePath || !await fs.pathExists(defaultFramePath)) {
+      console.error(chalk.red(`No Android frames found in ${androidDir}`));
+      console.log(chalk.yellow('Using original screenshot instead.'));
+      await fs.copy(screenshotPath, outputPath);
+      return;
+    }
+    
+    // Use the first available frame
+    try {
+      await overlayFrameOnScreenshot(defaultFramePath, screenshotPath, outputPath, targetWidth, targetHeight, false, true, 'compact');
+    } catch (error) {
+      console.error(chalk.red('Error overlaying frame:'), error);
+      await fs.copy(screenshotPath, outputPath);
+    }
+    return;
+  }
+  
+  // Overlay the frame on top of the screenshot
+  try {
+    await overlayFrameOnScreenshot(framePath, screenshotPath, outputPath, targetWidth, targetHeight, false, true, size);
+  } catch (error) {
+    console.error(chalk.red('Error overlaying frame:'), error);
+    await fs.copy(screenshotPath, outputPath);
+  }
 }
 
 /**
@@ -115,7 +191,7 @@ async function applyIPhoneFrame(
     
     // Use the first available frame
     try {
-      await overlayFrameOnScreenshot(defaultFramePath, screenshotPath, outputPath, targetWidth, targetHeight, pill);
+      await overlayFrameOnScreenshot(defaultFramePath, screenshotPath, outputPath, targetWidth, targetHeight, pill, false);
     } catch (error) {
       console.error(chalk.red('Error overlaying frame:'), error);
       await fs.copy(screenshotPath, outputPath);
@@ -125,7 +201,7 @@ async function applyIPhoneFrame(
   
   // Overlay the frame on top of the screenshot
   try {
-    await overlayFrameOnScreenshot(framePath, screenshotPath, outputPath, targetWidth, targetHeight, pill);
+    await overlayFrameOnScreenshot(framePath, screenshotPath, outputPath, targetWidth, targetHeight, pill, false);
   } catch (error) {
     console.error(chalk.red('Error overlaying frame:'), error);
     await fs.copy(screenshotPath, outputPath);
@@ -139,7 +215,9 @@ async function applyIPhoneFrame(
  * @param outputPath Path to save the combined image
  * @param targetWidth Optional target width for the final image
  * @param targetHeight Optional target height for the final image
- * @param isPill Whether the frame is a pill-style (true) or notch-style (false)
+ * @param isPill Whether the frame is a pill-style (true) or notch-style (false) - for iPhone
+ * @param isAndroid Whether the frame is an Android frame
+ * @param androidSize Optional Android device size ('compact' or 'medium')
  */
 async function overlayFrameOnScreenshot(
   framePath: string,
@@ -147,7 +225,9 @@ async function overlayFrameOnScreenshot(
   outputPath: string,
   targetWidth?: number,
   targetHeight?: number,
-  isPill?: boolean
+  isPill?: boolean,
+  isAndroid?: boolean,
+  androidSize?: 'compact' | 'medium'
 ): Promise<void> {
   try {
     // Read the images as base64
@@ -186,8 +266,19 @@ async function overlayFrameOnScreenshot(
       const containerHeight = dimensions.height;
       
       // Determine the appropriate corner radius based on the device dimensions and type
-      // These values are approximations and may need adjustment for different device frames
-      const cornerRadiusPercent = isPill ? 22 : 28; // Pill devices have slightly less rounded corners
+      let cornerRadiusPercent = 22; // Default for Android compact
+      
+      if (!isAndroid) {
+        // iPhone corner radius
+        cornerRadiusPercent = isPill ? 22 : 28; // Pill devices have slightly less rounded corners
+      } else {
+        // Android corner radius
+        // For medium Android devices, use a smaller corner radius
+        if (androidSize === 'medium') {
+          cornerRadiusPercent = 6; // Medium Android devices have less rounded corners
+        }
+      }
+      
       const cornerRadius = Math.min(containerWidth, containerHeight) * (cornerRadiusPercent / 100);
       
       // Now create the overlay HTML

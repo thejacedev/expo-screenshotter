@@ -13,6 +13,12 @@ export interface ScreenSize {
     width?: number; // Target width for the final image (for resizing)
     height?: number; // Target height for the final image (for resizing)
   };
+  androidOptions?: {
+    size?: 'compact' | 'medium'; // Size of the Android device (compact or medium)
+    color?: 'black' | 'silver'; // Color of the Android device
+    width?: number; // Target width for the final image (for resizing)
+    height?: number; // Target height for the final image (for resizing)
+  };
 }
 
 export interface View {
@@ -33,6 +39,12 @@ export interface ScreenshotConfig {
   iphoneOptions?: {
     pill?: boolean; // Whether to use pill-style iPhone (true) or notch-style (false)
     color?: 'Gold' | 'Space Black' | 'Silver' | 'Deep Purple' | 'Starlight' | 'Midnight' | 'Red' | 'Blue'; // iPhone color
+    width?: number; // Target width for the final image (for resizing)
+    height?: number; // Target height for the final image (for resizing)
+  };
+  androidOptions?: {
+    size?: 'compact' | 'medium'; // Size of the Android device (compact or medium)
+    color?: 'black' | 'silver'; // Color of the Android device
     width?: number; // Target width for the final image (for resizing)
     height?: number; // Target height for the final image (for resizing)
   };
