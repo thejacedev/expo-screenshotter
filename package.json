@@ -13,7 +13,8 @@
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "prepublishOnly": "npm run build",
-    "depcheck": "depcheck --ignores=\"depcheck\""
+    "depcheck": "depcheck --ignores=\"depcheck\"",
+    "release": "release-it"
   },
   "keywords": [
     "expo",
@@ -42,6 +43,7 @@
     "@types/node": "^20.10.5",
     "depcheck": "^1.4.7",
     "eslint": "^9.21.0",
+    "release-it": "^18.1.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.25.0"
