@@ -4,7 +4,6 @@
 [![License](https://img.shields.io/badge/license-MIT%2FDecheck-blue.svg)](https://github.com/TheRealPerson98/expo-screenshotter/blob/main/LICENSE)
 [![GitHub Issues](https://img.shields.io/github/issues/TheRealPerson98/expo-screenshotter.svg)](https://github.com/TheRealPerson98/expo-screenshotter/issues)
 [![Build Status](https://github.com/TheRealPerson98/expo-screenshotter/workflows/CI/badge.svg)](https://github.com/TheRealPerson98/expo-screenshotter/actions)
-[![Dependencies](https://img.shields.io/librariesio/release/npm/expo-screenshotter)](https://libraries.io/npm/expo-screenshotter)
 
 A command-line tool for automatically taking screenshots of Expo web apps at different screen sizes. Perfect for generating marketing materials, documentation, or testing responsive designs.
 
