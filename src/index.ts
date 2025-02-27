@@ -86,6 +86,79 @@ program
           {
             name: 'Home',
             path: '/'
+          },
+          {
+            name: 'Form with Input',
+            path: '/form',
+            interactions: [
+              {
+                type: 'type',
+                selector: 'input[placeholder="First Name"]',
+                text: 'Jace'
+              },
+              {
+                type: 'wait',
+                waitTime: 500
+              },
+              {
+                type: 'type',
+                selector: 'input[placeholder="Last Name"]',
+                text: 'Sleeman'
+              },
+              {
+                type: 'wait',
+                waitTime: 1000
+              }
+            ],
+            waitAfterInteractions: 1000
+          },
+          {
+            name: 'Button Click',
+            path: '/buttons',
+            interactions: [
+              {
+                type: 'click',
+                selector: 'div.css-view-175oi2r[tabindex="0"]'
+              },
+              {
+                type: 'wait',
+                waitTime: 2000
+              }
+            ],
+            waitAfterInteractions: 1000
+          },
+          {
+            name: 'Complex Interaction Example',
+            path: '/complex-form',
+            interactions: [
+              {
+                type: 'type',
+                selector: 'input[placeholder="First Name"]',
+                text: 'Jace'
+              },
+              {
+                type: 'wait',
+                waitTime: 300
+              },
+              {
+                type: 'type',
+                selector: 'input[placeholder="Last Name"]',
+                text: 'Sleeman'
+              },
+              {
+                type: 'wait',
+                waitTime: 300
+              },
+              {
+                type: 'click',
+                selector: 'div[tabindex="0"].css-view-175oi2r[style*="background-color: rgb(53, 122, 189)"]'
+              },
+              {
+                type: 'wait',
+                waitTime: 2000
+              }
+            ],
+            waitAfterInteractions: 1000
           }
         ],
         sizes: [

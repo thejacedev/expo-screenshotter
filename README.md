@@ -1,38 +1,71 @@
-# Expo Screenshotter
+# 📱 Expo Screenshotter
+
+<div align="center">
 
 [![npm version](https://img.shields.io/npm/v/expo-screenshotter.svg)](https://www.npmjs.com/package/expo-screenshotter)
 [![License](https://img.shields.io/badge/license-MIT%2FDecheck-blue.svg)](https://github.com/TheRealPerson98/expo-screenshotter/blob/main/LICENSE)
 [![GitHub Issues](https://img.shields.io/github/issues/TheRealPerson98/expo-screenshotter.svg)](https://github.com/TheRealPerson98/expo-screenshotter/issues)
 [![Build Status](https://github.com/TheRealPerson98/expo-screenshotter/workflows/CI/badge.svg)](https://github.com/TheRealPerson98/expo-screenshotter/actions)
 
-A command-line tool for automatically taking screenshots of Expo web apps at different screen sizes. Perfect for generating marketing materials, documentation, or testing responsive designs.
+</div>
 
-## Features
+<p align="center">
+  <b>A command-line tool for automatically taking screenshots of Expo web apps at different screen sizes.</b><br>
+  Perfect for generating marketing materials, documentation, or testing responsive designs.
+</p>
 
-- Take screenshots at predefined or custom screen sizes
-- Support for scrolling to capture full-page screenshots
-- Configurable delay to ensure content is fully loaded
-- Customizable output directory
-- Batch screenshot multiple URLs
-- Supports custom viewport configurations
-- **NEW:** Place screenshots inside device frames (iPhone or Android)
-- **NEW:** Multiple iPhone frame styles (pill or notch) and colors
-- **NEW:** Android frames in different sizes (compact or medium) and colors
+<div align="center">
+  <img src="examples/add_logs_iphone_x_with_gold_frame_iphone_pill_gold.png" alt="iPhone Pill Frame" width="185" height="406" />
+</div>
+
+---
+
+## ✨ Features
+
+<table>
+  <tr>
+    <td>
+      <ul>
+        <li>📏 Take screenshots at predefined or custom screen sizes</li>
+        <li>📜 Support for scrolling to capture full-page screenshots</li>
+        <li>⏱️ Configurable delay to ensure content is fully loaded</li>
+        <li>📁 Customizable output directory</li>
+        <li>🔄 Batch screenshot multiple URLs</li>
+      </ul>
+    </td>
+    <td>
+      <ul>
+        <li>🖼️ Supports custom viewport configurations</li>
+        <li>📱 Place screenshots inside device frames (iPhone or Android)</li>
+        <li>🎨 Multiple iPhone frame styles (pill or notch) and colors</li>
+        <li>🤖 Android frames in different sizes (compact or medium) and colors</li>
+        <li>🖱️ Interactive mode - type text, click buttons, and wait before taking screenshots</li>
+      </ul>
+    </td>
+  </tr>
+</table>
 
 > **Note:** Device framing is fully implemented for both iPhone and Android frames. The tool will take your screenshot and overlay the device frame on top of it, maintaining the screenshot's dimensions.
 
-## Installation
+---
+
+## 🚀 Installation
 
 ```bash
 npm install -g expo-screenshotter
 ```
 
-### Device Frame Assets
+---
+
+## 🖼️ Device Frame Assets
 
 To use the device frame feature, you need to have the frame images in the correct location.
 
-#### iPhone Frames
-The tool looks for iPhone frame images in the `src/assets/iphones` directory with this naming convention:
+<details>
+<summary><b>iPhone Frames</b></summary>
+<p>
+The tool looks for iPhone frame images in the <code>src/assets/iphones</code> directory with this naming convention:
+
 - `Pill=true, Color=Space Black.png`
 - `Pill=true, Color=Gold.png`
 - `Pill=true, Color=Silver.png`
@@ -41,17 +74,26 @@ The tool looks for iPhone frame images in the `src/assets/iphones` directory wit
 - `Pill=False, Color=Midnight.png`
 - `Pill=False, Color=Red.png`
 - `Pill=False, Color=Blue.png`
+</p>
+</details>
 
-#### Android Frames
-The tool looks for Android frame images in the `src/assets/android` directory with this naming convention:
+<details>
+<summary><b>Android Frames</b></summary>
+<p>
+The tool looks for Android frame images in the <code>src/assets/android</code> directory with this naming convention:
+
 - `Android Compact Black.png`
 - `Android Compact Silver.png`
 - `Android Medium Black.png`
 - `Android Medium Silver.png`
+</p>
+</details>
 
 If you're using this tool as a dependency in your project, you may need to create the appropriate asset directories and add the frame images manually.
 
-## Usage
+---
+
+## 📋 Usage
 
 There are two main commands:
 
@@ -71,9 +113,12 @@ expo-screenshotter capture
 
 This will use your `expo-screenshotter.json` configuration to take screenshots. Make sure your Expo web app is running first with `expo start --web`.
 
-### Configuration File (expo-screenshotter.json)
+---
 
-The configuration file controls all aspects of the screenshot process. Here's an example:
+## ⚙️ Configuration File (expo-screenshotter.json)
+
+<details>
+<summary><b>Click to view example configuration</b></summary>
 
 ```json
 {
@@ -83,16 +128,44 @@ The configuration file controls all aspects of the screenshot process. Here's an
       "path": "/"
     },
     {
-      "name": "Add Logs",
-      "path": "/add-log"
+      "name": "Form with Input",
+      "path": "/form",
+      "interactions": [
+        {
+          "type": "type",
+          "selector": "input[placeholder=\"First Name\"]",
+          "text": "John"
+        },
+        {
+          "type": "wait",
+          "waitTime": 500
+        },
+        {
+          "type": "type",
+          "selector": "input[placeholder=\"Last Name\"]",
+          "text": "Doe"
+        },
+        {
+          "type": "wait",
+          "waitTime": 1000
+        }
+      ],
+      "waitAfterInteractions": 1000
     },
     {
-      "name": "Goals",
-      "path": "/goals"
-    },
-    {
-      "name": "Logs",
-      "path": "/logs"
+      "name": "Button Click",
+      "path": "/buttons",
+      "interactions": [
+        {
+          "type": "click",
+          "selector": "button.primary-button"
+        },
+        {
+          "type": "wait",
+          "waitTime": 2000
+        }
+      ],
+      "waitAfterInteractions": 1000
     }
   ],
   "sizes": [
@@ -203,12 +276,16 @@ The configuration file controls all aspects of the screenshot process. Here's an
     "color": "black"
   }
 }
-
 ```
+</details>
 
-### Advanced Configuration Options
+---
 
-#### Global Options
+## 🔧 Advanced Configuration Options
+
+<details>
+<summary><b>Global Options</b></summary>
+
 - `waitTime`: Delay in milliseconds before taking screenshots (default: 1000)
 - `waitForSelector`: CSS selector to wait for before taking screenshots (e.g., "#my-element")
 - `fullPage`: Set to `true` to capture the entire scrollable content for all sizes (default: false)
@@ -224,8 +301,11 @@ The configuration file controls all aspects of the screenshot process. Here's an
   - `color`: Android device color ('black' or 'silver')
   - `width`: Optional target width for the final image (for custom resizing)
   - `height`: Optional target height for the final image (for custom resizing)
+</details>
 
-#### Per-Size Options
+<details>
+<summary><b>Per-Size Options</b></summary>
+
 Each size in the `sizes` array can have these additional options:
 - `fullPage`: Override the global fullPage setting for this specific size
 - `scrollY`: Scroll vertically by specified pixels before capturing
@@ -319,36 +399,100 @@ For example, to wait for a specific element and capture a full-page screenshot w
   ]
 }
 ```
+</details>
 
-### Available Device Frame Options
+<details>
+<summary><b>Per-View Interaction Options</b></summary>
 
-#### iPhone Frames
+Each view in the `views` array can have these additional options:
+- `interactions`: An array of interactions to perform before taking screenshots:
+  - Type interactions: `{ "type": "type", "selector": "CSS_SELECTOR", "text": "TEXT_TO_TYPE" }`
+  - Click interactions: `{ "type": "click", "selector": "CSS_SELECTOR" }`
+  - Wait interactions: `{ "type": "wait", "waitTime": MILLISECONDS }`
+- `waitAfterInteractions`: Time in milliseconds to wait after all interactions are complete before taking screenshots
 
-##### Pill-style (Dynamic Island)
-- Gold
-- Space Black
-- Silver
-- Deep Purple
+For example, to fill out a form and click a button before taking screenshots:
+```json
+{
+  "name": "Form Submission",
+  "path": "/contact",
+  "interactions": [
+    {
+      "type": "type",
+      "selector": "input[name='name']",
+      "text": "John Doe"
+    },
+    {
+      "type": "type",
+      "selector": "input[name='email']",
+      "text": "john@example.com"
+    },
+    {
+      "type": "type",
+      "selector": "textarea[name='message']",
+      "text": "This is a test message"
+    },
+    {
+      "type": "click",
+      "selector": "button[type='submit']"
+    },
+    {
+      "type": "wait",
+      "waitTime": 2000
+    }
+  ],
+  "waitAfterInteractions": 1000
+}
+```
+</details>
 
-##### Notch-style
-- Starlight
-- Midnight
-- Red
-- Blue
+---
 
-#### Android Frames
+## 📱 Available Device Frame Options
 
-##### Sizes
-- Compact
-- Medium
+<table>
+  <tr>
+    <th>iPhone Frames</th>
+    <th>Android Frames</th>
+  </tr>
+  <tr>
+    <td>
+      <b>Pill-style (Dynamic Island)</b>
+      <ul>
+        <li>Gold</li>
+        <li>Space Black</li>
+        <li>Silver</li>
+        <li>Deep Purple</li>
+      </ul>
+      <b>Notch-style</b>
+      <ul>
+        <li>Starlight</li>
+        <li>Midnight</li>
+        <li>Red</li>
+        <li>Blue</li>
+      </ul>
+    </td>
+    <td>
+      <b>Sizes</b>
+      <ul>
+        <li>Compact</li>
+        <li>Medium</li>
+      </ul>
+      <b>Colors</b>
+      <ul>
+        <li>Black</li>
+        <li>Silver</li>
+      </ul>
+    </td>
+  </tr>
+</table>
 
-##### Colors
-- Black
-- Silver
+---
 
-## Development
+## 🛠️ Development
 
-### Setup
+<details>
+<summary><b>Setup</b></summary>
 
 ```bash
 # Clone the repository
@@ -361,8 +505,10 @@ npm install
 # Build the project
 npm run build
 ```
+</details>
 
-### Linting
+<details>
+<summary><b>Linting</b></summary>
 
 The project uses ESLint for code quality:
 
@@ -373,8 +519,11 @@ npm run lint
 # Fix linting issues automatically
 npm run lint:fix
 ```
+</details>
 
-## License
+---
+
+## 📝 License
 
 This software is dual-licensed:
 
@@ -386,18 +535,25 @@ MIT © [Person98 LLC - Jace Sleeman (@TheRealPerson98)](https://github.com/TheRe
 
 This software can be used freely in personal and open-source projects. For commercial use, please refer to the Decheck license terms or contact for licensing options. 
 
-## Examples
+---
 
-Here are some examples of screenshots taken with expo-screenshotter:
+## 📸 Examples
 
-### Original Screenshot
-![Original Screenshot](examples/add_logs_iphone_x.png)
-
-### With iPhone Notch Frame (Midnight)
-![iPhone Notch Frame](examples/add_logs_iphone_x_with_notch_frame_iphone_notch_midnight.png)
-
-### With iPhone Pill Frame (Gold)
-![iPhone Pill Frame](examples/add_logs_iphone_x_with_gold_frame_iphone_pill_gold.png)
-
-### With Android Frame
-![Android Frame](examples/add_logs_iphone_x_with_android_medium_black.png) 
+<div align="center">
+  <table>
+    <tr>
+      <td align="center">
+        <strong>Original Screenshot</strong><br>
+        <img src="examples/add_logs_iphone_x.png" alt="Original Screenshot" width="185" height="406" />
+      </td>
+      <td align="center">
+        <strong>iPhone Notch Frame (Midnight)</strong><br>
+        <img src="examples/add_logs_iphone_x_with_notch_frame_iphone_notch_midnight.png" alt="iPhone Notch Frame" width="185" height="406" />
+      </td>
+      <td align="center">
+        <strong>iPhone Pill Frame (Gold)</strong><br>
+        <img src="examples/add_logs_iphone_x_with_gold_frame_iphone_pill_gold.png" alt="iPhone Pill Frame" width="185" height="406" />
+      </td>
+    </tr>
+  </table>
+</div> 

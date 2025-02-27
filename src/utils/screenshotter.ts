@@ -2,7 +2,7 @@ import puppeteer, { Page } from 'puppeteer';
 import fs from 'fs-extra';
 import path from 'path';
 import chalk from 'chalk';
-import { ScreenshotConfig, ScreenSize, View } from '../types';
+import { ScreenshotConfig, ScreenSize, View, Interaction } from '../types';
 import { applyDeviceFrame } from './deviceFrames';
 
 export async function takeScreenshots(config: ScreenshotConfig): Promise<void> {
@@ -59,6 +59,18 @@ export async function takeScreenshots(config: ScreenshotConfig): Promise<void> {
       // Additional wait time
       await new Promise(resolve => setTimeout(resolve, waitTime));
       
+      // Perform interactions if specified
+      if (view.interactions && view.interactions.length > 0) {
+        console.log(chalk.blue(`Performing ${view.interactions.length} interactions for view: ${view.name}`));
+        await performInteractions(page, view.interactions);
+        
+        // Wait after interactions if specified
+        if (view.waitAfterInteractions) {
+          console.log(chalk.gray(`Waiting ${view.waitAfterInteractions}ms after interactions...`));
+          await new Promise(resolve => setTimeout(resolve, view.waitAfterInteractions));
+        }
+      }
+      
       // Take screenshots for each size
       for (const size of sizes) {
         await takeScreenshotForSize(page, view, size, viewDir, fullPage, useDeviceFrame, deviceType, iphoneOptions, androidOptions);
@@ -66,6 +78,64 @@ export async function takeScreenshots(config: ScreenshotConfig): Promise<void> {
     }
   } finally {
     await browser.close();
+  }
+}
+
+/**
+ * Perform a series of interactions on the page
+ */
+async function performInteractions(page: Page, interactions: Interaction[]): Promise<void> {
+  for (const interaction of interactions) {
+    switch (interaction.type) {
+    case 'type':
+      if (!interaction.selector) {
+        console.warn(chalk.yellow('Warning: No selector provided for type interaction'));
+        continue;
+      }
+      if (!interaction.text) {
+        console.warn(chalk.yellow('Warning: No text provided for type interaction'));
+        continue;
+      }
+        
+      console.log(chalk.gray(`Typing "${interaction.text}" into "${interaction.selector}"`));
+        
+      try {
+        await page.waitForSelector(interaction.selector, { timeout: 5000 });
+        await page.click(interaction.selector, { clickCount: 3 }); // Triple click to select all existing text
+        await page.type(interaction.selector, interaction.text);
+      } catch (error: unknown) {
+        console.warn(chalk.yellow(`Warning: Failed to type into "${interaction.selector}": ${error instanceof Error ? error.message : String(error)}`));
+      }
+      break;
+        
+    case 'click':
+      if (!interaction.selector) {
+        console.warn(chalk.yellow('Warning: No selector provided for click interaction'));
+        continue;
+      }
+        
+      console.log(chalk.gray(`Clicking on "${interaction.selector}"`));
+        
+      try {
+        await page.waitForSelector(interaction.selector, { timeout: 5000 });
+        await page.click(interaction.selector);
+      } catch (error: unknown) {
+        console.warn(chalk.yellow(`Warning: Failed to click on "${interaction.selector}": ${error instanceof Error ? error.message : String(error)}`));
+      }
+      break;
+        
+    case 'wait':
+      const waitTime = interaction.waitTime || 1000;
+      console.log(chalk.gray(`Waiting for ${waitTime}ms`));
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+      break;
+        
+    default:
+      console.warn(chalk.yellow(`Warning: Unknown interaction type: ${(interaction as unknown as { type: string }).type}`));
+    }
+    
+    // Small wait between interactions to let the page respond
+    await new Promise(resolve => setTimeout(resolve, 300));
   }
 }
 
@@ -189,4 +259,4 @@ async function takeScreenshotForSize(
 
 function sanitizeFilename(name: string): string {
   return name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-} 
+}

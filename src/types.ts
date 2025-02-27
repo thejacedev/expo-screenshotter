@@ -21,9 +21,18 @@ export interface ScreenSize {
   };
 }
 
+export interface Interaction {
+  type: 'type' | 'click' | 'wait';
+  selector?: string;  // CSS selector for the element to interact with
+  text?: string;      // Text to type (for type interactions)
+  waitTime?: number;  // Time to wait in milliseconds (for wait interactions)
+}
+
 export interface View {
   name: string;
   path: string;
+  interactions?: Interaction[];  // List of interactions to perform before taking screenshots
+  waitAfterInteractions?: number; // Time to wait after all interactions before taking screenshots
 }
 
 export interface ScreenshotConfig {
