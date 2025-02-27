@@ -65,7 +65,7 @@ const runCommand = (command: string, args: string[]): Promise<number> => {
 program
   .name('expo-screenshotter')
   .description('Take screenshots of Expo apps at different screen sizes')
-  .version('0.1.1');
+  .version('0.2.0');
 
 // Keep the init command for backward compatibility
 program
