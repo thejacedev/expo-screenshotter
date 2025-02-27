@@ -3,9 +3,21 @@ import fs from 'fs-extra';
 import path from 'path';
 import chalk from 'chalk';
 import { ScreenshotConfig, ScreenSize, View } from '../types';
+import { applyDeviceFrame } from './deviceFrames';
 
 export async function takeScreenshots(config: ScreenshotConfig): Promise<void> {
-  const { views, sizes, outputDir, expoUrl, waitForSelector, waitTime = 1000, fullPage = false } = config;
+  const { 
+    views, 
+    sizes, 
+    outputDir, 
+    expoUrl, 
+    waitForSelector, 
+    waitTime = 1000, 
+    fullPage = false,
+    useDeviceFrame = false,
+    deviceType = 'iphone',
+    iphoneOptions = { pill: true, color: 'Space Black' }
+  } = config;
   
   // Ensure output directory exists
   await fs.ensureDir(outputDir);
@@ -48,7 +60,7 @@ export async function takeScreenshots(config: ScreenshotConfig): Promise<void> {
       
       // Take screenshots for each size
       for (const size of sizes) {
-        await takeScreenshotForSize(page, view, size, viewDir, fullPage);
+        await takeScreenshotForSize(page, view, size, viewDir, fullPage, useDeviceFrame, deviceType, iphoneOptions);
       }
     }
   } finally {
@@ -61,7 +73,10 @@ async function takeScreenshotForSize(
   view: View,
   size: ScreenSize,
   outputDir: string,
-  defaultFullPage: boolean
+  defaultFullPage: boolean,
+  defaultUseDeviceFrame: boolean,
+  defaultDeviceType: 'iphone' | 'android',
+  defaultIphoneOptions: { pill?: boolean; color?: string }
 ): Promise<void> {
   const { width, height, name, scrollX = 0, scrollY = 0 } = size;
   
@@ -69,10 +84,28 @@ async function takeScreenshotForSize(
   const useFullPage = size.hasOwnProperty('fullPage') ? 
     Boolean(size.fullPage) : defaultFullPage;
   
+  // Determine if we should use device frame
+  const useDeviceFrame = size.hasOwnProperty('useDeviceFrame') ? 
+    Boolean(size.useDeviceFrame) : defaultUseDeviceFrame;
+  
+  // Determine which device frame to use
+  const deviceType = size.deviceType || defaultDeviceType;
+  
+  // Determine iPhone options
+  const iphoneOptions = size.iphoneOptions || defaultIphoneOptions;
+  
   // Log what we're doing
   let sizeDescription = `${name} (${width}x${height})`;
   if (scrollX > 0 || scrollY > 0) {
     sizeDescription += ` with scroll position (${scrollX},${scrollY})`;
+  }
+  if (useDeviceFrame) {
+    if (deviceType === 'iphone') {
+      const pillType = iphoneOptions.pill ? 'pill' : 'notch';
+      sizeDescription += ` with ${deviceType} frame (${pillType}, ${iphoneOptions.color})`;
+    } else {
+      sizeDescription += ` with ${deviceType} frame`;
+    }
   }
   console.log(chalk.gray(`Taking screenshot for size: ${sizeDescription}`));
   
@@ -97,8 +130,19 @@ async function takeScreenshotForSize(
   if (scrollX > 0 || scrollY > 0) {
     filename += `_scroll_x${scrollX}_y${scrollY}`;
   }
-  filename += '.png';
   
+  // Add device frame indicator to filename if applicable
+  if (useDeviceFrame) {
+    if (deviceType === 'iphone') {
+      const pillType = iphoneOptions.pill ? 'pill' : 'notch';
+      const color = iphoneOptions.color || 'Space Black';
+      filename += `_${deviceType}_${pillType}_${sanitizeFilename(color)}`;
+    } else {
+      filename += `_${deviceType}_frame`;
+    }
+  }
+  
+  filename += '.png';
   const outputPath = path.join(outputDir, filename);
   
   // Take screenshot
@@ -108,6 +152,26 @@ async function takeScreenshotForSize(
   });
   
   console.log(chalk.green(`Saved screenshot to: ${outputPath}`));
+  
+  // Apply device frame if enabled
+  if (useDeviceFrame) {
+    if (deviceType === 'iphone') {
+      console.log(chalk.gray(`Applying ${deviceType} frame (${iphoneOptions.pill ? 'pill' : 'notch'}, ${iphoneOptions.color || 'Space Black'})...`));
+    } else {
+      console.log(chalk.gray(`Applying ${deviceType} frame...`));
+    }
+    
+    // Create a temporary path for the framed screenshot
+    const framedOutputPath = path.join(outputDir, `framed_${filename}`);
+    
+    // Apply the device frame
+    await applyDeviceFrame(outputPath, deviceType, framedOutputPath, iphoneOptions);
+    
+    // Replace the original screenshot with the framed one
+    await fs.move(framedOutputPath, outputPath, { overwrite: true });
+    
+    console.log(chalk.green(`Applied ${deviceType} frame to screenshot: ${outputPath}`));
+  }
 }
 
 function sanitizeFilename(name: string): string {

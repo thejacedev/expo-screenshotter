@@ -115,11 +115,52 @@ program
             height: 800,
             name: 'Tablet Full Page',
             fullPage: true  // Capture the entire page height
+          },
+          {
+            width: 375,
+            height: 812,
+            name: 'iPhone X with Frame',
+            useDeviceFrame: true,
+            deviceType: 'iphone',
+            iphoneOptions: {
+              pill: true,
+              color: 'Space Black'
+            }
+          },
+          {
+            width: 375,
+            height: 812,
+            name: 'iPhone X with Gold Frame',
+            useDeviceFrame: true,
+            deviceType: 'iphone',
+            iphoneOptions: {
+              pill: true,
+              color: 'Gold'
+            }
+          },
+          {
+            width: 375,
+            height: 812,
+            name: 'iPhone X with Notch Frame',
+            useDeviceFrame: true,
+            deviceType: 'iphone',
+            iphoneOptions: {
+              pill: false,
+              color: 'Midnight'
+            }
+          },
+          {
+            width: 360,
+            height: 740,
+            name: 'Android with Frame',
+            useDeviceFrame: true,
+            deviceType: 'android'
           }
         ],
         outputDir: './screenshots',
         expoUrl: 'http://localhost:8081',
-        waitTime: 2000
+        waitTime: 2000,
+        useDeviceFrame: false  // Default to not using device frames
       };
       
       await fs.writeJSON(configPath, defaultConfig, { spaces: 2 });
