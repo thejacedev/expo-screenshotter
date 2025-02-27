@@ -1,0 +1,49 @@
+{
+  "name": "expo-screenshotter",
+  "version": "0.1.0",
+  "description": "A tool to take screenshots of Expo apps at different screen sizes",
+  "main": "dist/index.js",
+  "bin": {
+    "expo-screenshotter": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "prepublishOnly": "npm run build",
+    "depcheck": "depcheck --ignores=\"depcheck\""
+  },
+  "keywords": [
+    "expo",
+    "screenshot",
+    "react-native",
+    "testing"
+  ],
+  "author": "Jace Sleeman (@TheRealPerson98)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TheRealPerson98/expo-screenshotter"
+  },
+  "bugs": {
+    "url": "https://github.com/TheRealPerson98/expo-screenshotter/issues"
+  },
+  "homepage": "https://github.com/TheRealPerson98/expo-screenshotter#readme",
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "commander": "^11.1.0",
+    "fs-extra": "^11.2.0",
+    "puppeteer": "^22.0.0"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^20.10.5",
+    "depcheck": "^1.4.7",
+    "eslint": "^9.21.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.25.0"
+  }
+}
