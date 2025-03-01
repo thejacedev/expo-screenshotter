@@ -40,12 +40,25 @@
         <li>🎨 Multiple iPhone frame styles (pill or notch) and colors</li>
         <li>🤖 Android frames in different sizes (compact or medium) and colors</li>
         <li>🖱️ Interactive mode - type text, click buttons, and wait before taking screenshots</li>
+        <li>🔍 Enhanced route detection for Expo Router projects with interactive selection</li>
       </ul>
     </td>
   </tr>
 </table>
 
 > **Note:** Device framing is fully implemented for both iPhone and Android frames. The tool will take your screenshot and overlay the device frame on top of it, maintaining the screenshot's dimensions.
+
+---
+
+## 🆕 What's New in v0.3.0
+
+- **Interactive Route Selection**: Choose routes using a checkbox interface with arrow keys and space bar
+- **Improved Expo Router Detection**: Better detection of routes in Expo Router projects, including tab navigation and dynamic routes
+- **Simplified Route Selection Flow**: Three clear options for route selection:
+  - Select specific routes interactively
+  - Use all detected routes
+  - Use default routes
+- **Enhanced Tab Route Detection**: Automatically detects tab routes from Expo Router tab layouts
 
 ---
 
@@ -105,6 +118,22 @@ expo-screenshotter init
 
 This creates a default `expo-screenshotter.json` configuration file in your project. You can then customize this file for your needs.
 
+If you're using Expo Router, the tool will detect it and offer to automatically scan your project for routes:
+
+```
+Do you want us to automatically detect all routes for you? (Y/n):
+```
+
+If you select yes, the tool will:
+1. Scan your `app` or `src/app` directory for route files
+2. Detect routes based on Expo Router conventions (including route groups with parentheses)
+3. Show you the detected routes and present an interactive menu with three options:
+   - **Select specific routes interactively**: Opens a checkbox interface where you can use arrow keys to navigate, space to select routes, and enter to confirm
+   - **Use all detected routes**: Includes all detected routes in your configuration
+   - **Use default routes**: Uses the default example routes instead
+
+This makes it much easier to get started with complex Expo Router projects!
+
 ### Take Screenshots
 
 ```bash
@@ -116,6 +145,8 @@ This will use your `expo-screenshotter.json` configuration to take screenshots. 
 ---
 
 ## ⚙️ Configuration File (expo-screenshotter.json)
+
+The configuration file controls which routes to screenshot, at what sizes, and with what options. You can create this file manually or use the `init` command, which can automatically detect routes in Expo Router projects.
 
 <details>
 <summary><b>Click to view example configuration</b></summary>

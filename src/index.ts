@@ -5,9 +5,11 @@ import fs from 'fs-extra';
 import path from 'path';
 import chalk from 'chalk';
 import { takeScreenshots } from './utils/screenshotter';
-import { ScreenshotConfig } from './types';
+import { ScreenshotConfig, View, Interaction } from './types';
 import { spawn } from 'child_process';
 import readline from 'readline';
+import { detectExpoRoutes } from './utils/routeDetector';
+import inquirer from 'inquirer';
 
 const program = new Command();
 
@@ -59,7 +61,7 @@ const runCommand = (command: string, args: string[]): Promise<number> => {
 program
   .name('expo-screenshotter')
   .description('Take screenshots of Expo apps at different screen sizes')
-  .version('0.2.0');
+  .version('0.3.0');
 
 program
   .command('init')
@@ -74,86 +76,147 @@ program
         return;
       }
       
-      const defaultConfig: ScreenshotConfig = {
-        views: [
-          {
-            name: 'Home',
-            path: '/'
-          },
-          {
-            name: 'Form with Input',
-            path: '/form',
-            interactions: [
-              {
-                type: 'type',
-                selector: 'input[placeholder="First Name"]',
-                text: 'Jace'
-              },
-              {
-                type: 'wait',
-                waitTime: 500
-              },
-              {
-                type: 'type',
-                selector: 'input[placeholder="Last Name"]',
-                text: 'Sleeman'
-              },
-              {
-                type: 'wait',
-                waitTime: 1000
-              }
-            ],
-            waitAfterInteractions: 1000
-          },
-          {
-            name: 'Button Click',
-            path: '/buttons',
-            interactions: [
-              {
-                type: 'click',
-                selector: 'div.css-view-175oi2r[tabindex="0"]'
-              },
-              {
-                type: 'wait',
-                waitTime: 2000
-              }
-            ],
-            waitAfterInteractions: 1000
-          },
-          {
-            name: 'Complex Interaction Example',
-            path: '/complex-form',
-            interactions: [
-              {
-                type: 'type',
-                selector: 'input[placeholder="First Name"]',
-                text: 'Jace'
-              },
-              {
-                type: 'wait',
-                waitTime: 300
-              },
-              {
-                type: 'type',
-                selector: 'input[placeholder="Last Name"]',
-                text: 'Sleeman'
-              },
-              {
-                type: 'wait',
-                waitTime: 300
-              },
-              {
-                type: 'click',
-                selector: 'div[tabindex="0"].css-view-175oi2r[style*="background-color: rgb(53, 122, 189)"]'
-              },
-              {
-                type: 'wait',
-                waitTime: 2000
-              }
-            ],
-            waitAfterInteractions: 1000
+      let views: View[] = [
+        {
+          name: 'Home',
+          path: '/'
+        },
+        {
+          name: 'Form with Input',
+          path: '/form',
+          interactions: [
+            {
+              type: 'type',
+              selector: 'input[placeholder="First Name"]',
+              text: 'Jace'
+            } as Interaction,
+            {
+              type: 'wait',
+              waitTime: 500
+            } as Interaction,
+            {
+              type: 'type',
+              selector: 'input[placeholder="Last Name"]',
+              text: 'Sleeman'
+            } as Interaction,
+            {
+              type: 'wait',
+              waitTime: 1000
+            } as Interaction
+          ],
+          waitAfterInteractions: 1000
+        },
+        {
+          name: 'Button Click',
+          path: '/buttons',
+          interactions: [
+            {
+              type: 'click',
+              selector: 'div.css-view-175oi2r[tabindex="0"]'
+            } as Interaction,
+            {
+              type: 'wait',
+              waitTime: 2000
+            } as Interaction
+          ],
+          waitAfterInteractions: 1000
+        },
+        {
+          name: 'Complex Interaction Example',
+          path: '/complex-form',
+          interactions: [
+            {
+              type: 'type',
+              selector: 'input[placeholder="First Name"]',
+              text: 'Jace'
+            } as Interaction,
+            {
+              type: 'wait',
+              waitTime: 300
+            } as Interaction,
+            {
+              type: 'type',
+              selector: 'input[placeholder="Last Name"]',
+              text: 'Sleeman'
+            } as Interaction,
+            {
+              type: 'wait',
+              waitTime: 300
+            } as Interaction,
+            {
+              type: 'click',
+              selector: 'div[tabindex="0"].css-view-175oi2r[style*="background-color: rgb(53, 122, 189)"]'
+            } as Interaction,
+            {
+              type: 'wait',
+              waitTime: 2000
+            } as Interaction
+          ],
+          waitAfterInteractions: 1000
+        }
+      ];
+      
+      const isExpoRouterProject = await fs.pathExists(path.join(process.cwd(), 'app')) || 
+                                 await fs.pathExists(path.join(process.cwd(), 'src/app'));
+      
+      if (isExpoRouterProject) {
+        const shouldAutoDetectRoutes = await promptYesNo('Do you want us to automatically detect all routes for you?');
+        
+        if (shouldAutoDetectRoutes) {
+          let appDir = './app';
+          if (!await fs.pathExists(appDir)) {
+            appDir = './src/app';
+            if (!await fs.pathExists(appDir)) {
+              console.log(chalk.yellow('Could not find app directory. Using default routes.'));
+            }
           }
-        ],
+          
+          if (await fs.pathExists(appDir)) {
+            const detectedRoutes = await detectExpoRoutes(appDir);
+            
+            if (detectedRoutes.length > 0) {
+              console.log(chalk.green(`Detected ${detectedRoutes.length} routes:`));
+              detectedRoutes.forEach((route, index) => {
+                console.log(chalk.blue(`${index + 1}. ${route.name}: ${route.path}`));
+              });
+              
+              const selectionOptions = await inquirer.prompt([
+                {
+                  type: 'list',
+                  name: 'routeSelectionOption',
+                  message: 'How would you like to select routes?',
+                  choices: [
+                    { name: 'Select specific routes interactively', value: 'select' },
+                    { name: 'Use all detected routes', value: 'all' },
+                    { name: 'Use default routes', value: 'default' }
+                  ]
+                }
+              ]);
+              
+              if (selectionOptions.routeSelectionOption === 'select') {
+                const selectedRoutes = await selectRoutesInteractively(detectedRoutes);
+                
+                if (selectedRoutes.length > 0) {
+                  views = selectedRoutes;
+                  console.log(chalk.green(`Selected ${views.length} routes for configuration.`));
+                } else {
+                  console.log(chalk.yellow('No routes selected. Using default routes.'));
+                }
+              } else if (selectionOptions.routeSelectionOption === 'all') {
+                views = detectedRoutes;
+                console.log(chalk.green('Using all detected routes for configuration.'));
+              } else {
+                console.log(chalk.yellow('Using default routes.'));
+              }
+            } else {
+              console.log(chalk.yellow('No routes detected. Using default routes.'));
+            }
+          }
+        }
+      }
+      
+      const defaultConfig: ScreenshotConfig = {
+        views,
         sizes: [
           {
             width: 375,
@@ -318,4 +381,24 @@ process.on('exit', () => {
   if (rl.listenerCount('line') > 0) {
     rl.close();
   }
-}); 
+});
+
+const selectRoutesInteractively = async (routes: View[]): Promise<View[]> => {
+  console.log(chalk.yellow('Use arrow keys to navigate, space to select routes, and enter to confirm:'));
+  
+  const { selectedRoutes } = await inquirer.prompt([
+    {
+      type: 'checkbox',
+      name: 'selectedRoutes',
+      message: 'Select routes:',
+      choices: routes.map((route, index) => ({
+        name: `${index + 1}. ${route.name}: ${route.path}`,
+        value: route,
+        checked: false
+      })),
+      pageSize: 10
+    }
+  ]);
+  
+  return selectedRoutes;
+}; 

@@ -41,11 +41,13 @@
     "commander": "^11.1.0",
     "expo-screenshotter": "file:",
     "fs-extra": "^11.2.0",
+    "inquirer": "^12.4.2",
     "puppeteer": "^22.0.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
     "@types/fs-extra": "^11.0.4",
+    "@types/inquirer": "^9.0.7",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.10.5",
     "depcheck": "^1.4.7",
