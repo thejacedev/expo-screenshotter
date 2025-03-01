@@ -8,7 +8,9 @@ export default tseslint.config(
       'build/**',
       'coverage/**',
       '.expo/**',
-      'web-build/**'
+      'web-build/**',
+      '__tests__/**/*.ts'
+      
     ]
   },
   {

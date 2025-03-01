@@ -556,4 +556,52 @@ This software can be used freely in personal and open-source projects. For comme
       </td>
     </tr>
   </table>
-</div> 
+</div>
+
+## Testing
+
+To run the tests:
+
+```bash
+npm test
+```
+
+### Test Setup
+
+The tests use a mock server to simulate an Expo app and mock the screenshot capture process. The tests are designed to run in isolation and not interfere with each other.
+
+#### Test Files
+
+- `basic.test.ts`: Tests basic functionality like initializing a configuration file and taking screenshots.
+- `advanced.test.ts`: Tests advanced features like device frames, interactions, and full-page screenshots.
+- `programmatic.test.ts`: Tests the programmatic API.
+
+#### Mock Server
+
+The tests use a mock server (`MockExpoServer`) to simulate an Expo app. The server serves static HTML pages that can be used for testing.
+
+#### Test Configuration
+
+The test configuration is defined in `setup.ts` and includes:
+
+- Output directory for screenshots
+- Mock server port
+- Expo URL
+
+## Troubleshooting
+
+### TypeScript Errors
+
+If you encounter TypeScript errors when running the tests, make sure you have the correct TypeScript configuration. The tests use a separate `tsconfig.json` file in the `__tests__` directory.
+
+### Port Conflicts
+
+If you encounter port conflicts when running the tests, you can modify the port numbers in the test files. Each test file uses a different port to avoid conflicts.
+
+### PowerShell Execution Policy
+
+If you're using PowerShell and encounter execution policy errors, you can run the tests with:
+
+```bash
+powershell -ExecutionPolicy Bypass -Command "npm test"
+``` 

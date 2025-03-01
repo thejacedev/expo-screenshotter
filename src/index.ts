@@ -11,13 +11,11 @@ import readline from 'readline';
 
 const program = new Command();
 
-// Create readline interface for user input
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
 });
 
-// Helper function to prompt user for yes/no questions
 const promptYesNo = (question: string): Promise<boolean> => {
   return new Promise((resolve) => {
     rl.question(`${question} (Y/n): `, (answer) => {
@@ -27,21 +25,17 @@ const promptYesNo = (question: string): Promise<boolean> => {
   });
 };
 
-// Helper function to run a command and return its output
 const runCommand = (command: string, args: string[]): Promise<number> => {
   return new Promise((resolve, reject) => {
-    // On Windows, we need to use different command execution
     const isWindows = process.platform === 'win32';
     let childProcess;
     
     if (isWindows) {
-      // On Windows, spawn 'cmd.exe' with '/c' flag followed by the command
       childProcess = spawn('cmd.exe', ['/c', command, ...args], { 
         stdio: 'inherit',
         shell: true
       });
     } else {
-      // On Unix-like systems, spawn the command directly
       childProcess = spawn(command, args, { 
         stdio: 'inherit',
         shell: true
@@ -67,7 +61,6 @@ program
   .description('Take screenshots of Expo apps at different screen sizes')
   .version('0.2.0');
 
-// Keep the init command for backward compatibility
 program
   .command('init')
   .description('Initialize a new expo-screenshotter.json configuration file')
@@ -181,13 +174,13 @@ program
             width: 375,
             height: 812,
             name: 'iPhone X Scrolled',
-            scrollY: 500  // Scroll down 500 pixels
+            scrollY: 500  
           },
           {
             width: 1280,
             height: 800,
             name: 'Tablet Full Page',
-            fullPage: true  // Capture the entire page height
+            fullPage: true  
           },
           {
             width: 375,
@@ -233,14 +226,13 @@ program
         outputDir: './screenshots',
         expoUrl: 'http://localhost:8081',
         waitTime: 2000,
-        useDeviceFrame: false  // Default to not using device frames
+        useDeviceFrame: false  
       };
       
       await fs.writeJSON(configPath, defaultConfig, { spaces: 2 });
       console.log(chalk.green('Created expo-screenshotter.json'));
       console.log(chalk.blue('Edit this file to configure your screenshot settings'));
       
-      // Check if this is an Expo project by looking for app.json or app.config.js
       const isExpoProject = await fs.pathExists(path.join(process.cwd(), 'app.json')) || 
                             await fs.pathExists(path.join(process.cwd(), 'app.config.js'));
       
@@ -253,7 +245,6 @@ program
         if (shouldInstallDeps) {
           console.log(chalk.blue('\nInstalling react-native-web...'));
           try {
-            // Use a more direct command that should work cross-platform
             await runCommand('npm', ['install', 'react-native-web']);
             console.log(chalk.green('\nSuccessfully installed web dependencies!'));
             console.log(chalk.blue('You can now run your Expo app with web support using:'));
@@ -280,7 +271,6 @@ program
     }
   });
 
-// Keep the capture command for backward compatibility
 program
   .command('capture')
   .description('Capture screenshots based on the configuration')
@@ -324,7 +314,6 @@ program
 
 program.parse(process.argv);
 
-// Close readline interface if it's still open at the end
 process.on('exit', () => {
   if (rl.listenerCount('line') > 0) {
     rl.close();

@@ -20,7 +20,6 @@ export async function takeScreenshots(config: ScreenshotConfig): Promise<void> {
     androidOptions = { size: 'medium', color: 'black' }
   } = config;
   
-  // Ensure output directory exists
   await fs.ensureDir(outputDir);
   
   console.log(chalk.blue('Launching browser...'));
@@ -33,21 +32,17 @@ export async function takeScreenshots(config: ScreenshotConfig): Promise<void> {
   try {
     const page = await browser.newPage();
     
-    // Take screenshots for each view and size
     for (const view of views) {
       console.log(chalk.blue(`Processing view: ${view.name}`));
       
-      // Create directory for this view
       const viewDir = path.join(outputDir, sanitizeFilename(view.name));
       await fs.ensureDir(viewDir);
       
-      // Navigate to the view
       const viewUrl = `${expoUrl}${view.path}`;
       console.log(chalk.gray(`Navigating to ${viewUrl}`));
       
       await page.goto(viewUrl, { waitUntil: 'networkidle2' });
       
-      // Wait for selector if specified
       if (waitForSelector) {
         try {
           await page.waitForSelector(waitForSelector, { timeout: 30000 });
@@ -56,22 +51,18 @@ export async function takeScreenshots(config: ScreenshotConfig): Promise<void> {
         }
       }
       
-      // Additional wait time
       await new Promise(resolve => setTimeout(resolve, waitTime));
       
-      // Perform interactions if specified
       if (view.interactions && view.interactions.length > 0) {
         console.log(chalk.blue(`Performing ${view.interactions.length} interactions for view: ${view.name}`));
         await performInteractions(page, view.interactions);
         
-        // Wait after interactions if specified
         if (view.waitAfterInteractions) {
           console.log(chalk.gray(`Waiting ${view.waitAfterInteractions}ms after interactions...`));
           await new Promise(resolve => setTimeout(resolve, view.waitAfterInteractions));
         }
       }
       
-      // Take screenshots for each size
       for (const size of sizes) {
         await takeScreenshotForSize(page, view, size, viewDir, fullPage, useDeviceFrame, deviceType, iphoneOptions, androidOptions);
       }
@@ -101,7 +92,7 @@ async function performInteractions(page: Page, interactions: Interaction[]): Pro
         
       try {
         await page.waitForSelector(interaction.selector, { timeout: 5000 });
-        await page.click(interaction.selector, { clickCount: 3 }); // Triple click to select all existing text
+        await page.click(interaction.selector, { clickCount: 3 }); 
         await page.type(interaction.selector, interaction.text);
       } catch (error: unknown) {
         console.warn(chalk.yellow(`Warning: Failed to type into "${interaction.selector}": ${error instanceof Error ? error.message : String(error)}`));
@@ -133,8 +124,6 @@ async function performInteractions(page: Page, interactions: Interaction[]): Pro
     default:
       console.warn(chalk.yellow(`Warning: Unknown interaction type: ${(interaction as unknown as { type: string }).type}`));
     }
-    
-    // Small wait between interactions to let the page respond
     await new Promise(resolve => setTimeout(resolve, 300));
   }
 }
@@ -152,24 +141,24 @@ async function takeScreenshotForSize(
 ): Promise<void> {
   const { width, height, name, scrollX = 0, scrollY = 0 } = size;
   
-  // Determine if we should use fullPage mode
+
   const useFullPage = size.hasOwnProperty('fullPage') ? 
     Boolean(size.fullPage) : defaultFullPage;
   
-  // Determine if we should use device frame
+
   const useDeviceFrame = size.hasOwnProperty('useDeviceFrame') ? 
     Boolean(size.useDeviceFrame) : defaultUseDeviceFrame;
   
-  // Determine which device frame to use
+
   const deviceType = size.deviceType || defaultDeviceType;
   
-  // Determine iPhone options
+
   const iphoneOptions = size.iphoneOptions || defaultIphoneOptions;
   
-  // Determine Android options
+
   const androidOptions = size.androidOptions || defaultAndroidOptions;
   
-  // Log what we're doing
+
   let sizeDescription = `${name} (${width}x${height})`;
   if (scrollX > 0 || scrollY > 0) {
     sizeDescription += ` with scroll position (${scrollX},${scrollY})`;
@@ -186,29 +175,23 @@ async function takeScreenshotForSize(
   }
   console.log(chalk.gray(`Taking screenshot for size: ${sizeDescription}`));
   
-  // Set viewport size
   await page.setViewport({ width, height });
   
-  // Wait for any animations to complete
   await new Promise(resolve => setTimeout(resolve, 500));
   
-  // Scroll to position if specified
   if (scrollX > 0 || scrollY > 0) {
     await page.evaluate((x, y) => {
       window.scrollTo(x, y);
     }, scrollX, scrollY);
     
-    // Wait a bit after scrolling
     await new Promise(resolve => setTimeout(resolve, 300));
   }
   
-  // Generate filename with scroll position if applicable
   let filename = `${sanitizeFilename(view.name)}_${sanitizeFilename(name)}`;
   if (scrollX > 0 || scrollY > 0) {
     filename += `_scroll_x${scrollX}_y${scrollY}`;
   }
   
-  // Add device frame indicator to filename if applicable
   if (useDeviceFrame) {
     if (deviceType === 'iphone') {
       const pillType = iphoneOptions.pill ? 'pill' : 'notch';
@@ -226,7 +209,6 @@ async function takeScreenshotForSize(
   filename += '.png';
   const outputPath = path.join(outputDir, filename);
   
-  // Take screenshot
   await page.screenshot({
     path: outputPath,
     fullPage: useFullPage
@@ -234,7 +216,6 @@ async function takeScreenshotForSize(
   
   console.log(chalk.green(`Saved screenshot to: ${outputPath}`));
   
-  // Apply device frame if enabled
   if (useDeviceFrame) {
     if (deviceType === 'iphone') {
       console.log(chalk.gray(`Applying ${deviceType} frame (${iphoneOptions.pill ? 'pill' : 'notch'}, ${iphoneOptions.color || 'Space Black'})...`));
@@ -244,13 +225,10 @@ async function takeScreenshotForSize(
       console.log(chalk.gray(`Applying ${deviceType} frame...`));
     }
     
-    // Create a temporary path for the framed screenshot
     const framedOutputPath = path.join(outputDir, `framed_${filename}`);
     
-    // Apply the device frame
     await applyDeviceFrame(outputPath, deviceType, framedOutputPath, iphoneOptions, androidOptions);
     
-    // Replace the original screenshot with the framed one
     await fs.move(framedOutputPath, outputPath, { overwrite: true });
     
     console.log(chalk.green(`Applied ${deviceType} frame to screenshot: ${outputPath}`));

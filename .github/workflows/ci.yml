@@ -40,4 +40,9 @@ jobs:
       run: npm run build
       
     - name: Run TypeScript compiler
-      run: npx tsc --noEmit 
+      run: npx tsc --noEmit
+      
+    - name: Run tests
+      run: npm test
+      env:
+        CI: true 

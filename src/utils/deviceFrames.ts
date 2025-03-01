@@ -20,19 +20,15 @@ export async function applyDeviceFrame(
 ): Promise<void> {
   try {
     if (deviceType === 'iphone') {
-      // Use real iPhone frames
       await applyIPhoneFrame(screenshotPath, outputPath, iphoneOptions);
     } else if (deviceType === 'android') {
-      // Use real Android frames
       await applyAndroidFrame(screenshotPath, outputPath, androidOptions);
     } else {
-      // For unknown device types, just copy the screenshot
       console.log(chalk.yellow(`Unknown device type: ${deviceType}. Using original screenshot.`));
       await fs.copy(screenshotPath, outputPath);
     }
   } catch (error) {
     console.error(chalk.red('Error applying device frame:'), error);
-    // If there's an error, just copy the original screenshot
     await fs.copy(screenshotPath, outputPath);
   }
 }
@@ -42,15 +38,11 @@ export async function applyDeviceFrame(
  * Works in both development and production environments
  */
 function getAssetsPath(): string {
-  // Try multiple possible locations for the assets
   const possiblePaths = [
-    // From dist/utils to src/assets (development)
     path.join(__dirname, '..', '..', 'src', 'assets'),
-    // From dist/utils to dist/assets (if assets are copied during build)
     path.join(__dirname, '..', 'assets'),
-    // From current working directory
     path.join(process.cwd(), 'src', 'assets'),
-    // From package root (if installed as a dependency)
+
     path.join(process.cwd(), 'node_modules', 'expo-screenshotter', 'src', 'assets')
   ];
 
@@ -60,7 +52,6 @@ function getAssetsPath(): string {
     }
   }
 
-  // If no valid path is found, return the first one (will likely fail, but with a clear error)
   return possiblePaths[0];
 }
 
@@ -75,26 +66,21 @@ async function applyAndroidFrame(
   outputPath: string,
   options?: { size?: 'compact' | 'medium'; color?: 'black' | 'silver'; width?: number; height?: number }
 ): Promise<void> {
-  // Default options
   const size = options?.size ?? 'medium';
   const color = options?.color ?? 'black';
   const targetWidth = options?.width;
   const targetHeight = options?.height;
   
-  // Get the assets path
   const assetsPath = getAssetsPath();
   
-  // Construct the frame filename
   const frameFilename = `Android ${size.charAt(0).toUpperCase() + size.slice(1)} ${color.charAt(0).toUpperCase() + color.slice(1)}.png`;
   const framePath = path.join(assetsPath, 'android', frameFilename);
   
   console.log(chalk.gray(`Looking for Android frame at: ${framePath}`));
   
-  // Check if the frame file exists
   if (!await fs.pathExists(framePath)) {
     console.warn(chalk.yellow(`Android frame not found: ${frameFilename}. Looking for any available frame...`));
     
-    // Try to find any available frame
     const androidDir = path.join(assetsPath, 'android');
     let defaultFramePath = '';
     
@@ -117,7 +103,6 @@ async function applyAndroidFrame(
       return;
     }
     
-    // Use the first available frame
     try {
       await overlayFrameOnScreenshot(defaultFramePath, screenshotPath, outputPath, targetWidth, targetHeight, false, true, 'compact');
     } catch (error) {
@@ -127,7 +112,6 @@ async function applyAndroidFrame(
     return;
   }
   
-  // Overlay the frame on top of the screenshot
   try {
     await overlayFrameOnScreenshot(framePath, screenshotPath, outputPath, targetWidth, targetHeight, false, true, size);
   } catch (error) {
@@ -147,26 +131,21 @@ async function applyIPhoneFrame(
   outputPath: string,
   options?: { pill?: boolean; color?: string; width?: number; height?: number }
 ): Promise<void> {
-  // Default options
   const pill = options?.pill ?? true;
   const color = options?.color ?? 'Space Black';
   const targetWidth = options?.width;
   const targetHeight = options?.height;
   
-  // Get the assets path
   const assetsPath = getAssetsPath();
   
-  // Construct the frame filename
   const frameFilename = `Pill=${pill ? 'true' : 'False'}, Color=${color}.png`;
   const framePath = path.join(assetsPath, 'iphones', frameFilename);
   
   console.log(chalk.gray(`Looking for frame at: ${framePath}`));
   
-  // Check if the frame file exists
   if (!await fs.pathExists(framePath)) {
     console.warn(chalk.yellow(`iPhone frame not found: ${frameFilename}. Looking for any available frame...`));
     
-    // Try to find any available frame
     const iphoneDir = path.join(assetsPath, 'iphones');
     let defaultFramePath = '';
     
@@ -189,7 +168,6 @@ async function applyIPhoneFrame(
       return;
     }
     
-    // Use the first available frame
     try {
       await overlayFrameOnScreenshot(defaultFramePath, screenshotPath, outputPath, targetWidth, targetHeight, pill, false);
     } catch (error) {
@@ -199,7 +177,6 @@ async function applyIPhoneFrame(
     return;
   }
   
-  // Overlay the frame on top of the screenshot
   try {
     await overlayFrameOnScreenshot(framePath, screenshotPath, outputPath, targetWidth, targetHeight, pill, false);
   } catch (error) {
@@ -230,14 +207,12 @@ async function overlayFrameOnScreenshot(
   androidSize?: 'compact' | 'medium'
 ): Promise<void> {
   try {
-    // Read the images as base64
     const frameBuffer = await fs.readFile(framePath);
     const screenshotBuffer = await fs.readFile(screenshotPath);
     
     const frameBase64 = frameBuffer.toString('base64');
     const screenshotBase64 = screenshotBuffer.toString('base64');
     
-    // Get the dimensions of the screenshot using Puppeteer
     const browser = await puppeteer.launch({ 
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox']
@@ -246,42 +221,35 @@ async function overlayFrameOnScreenshot(
     try {
       const page = await browser.newPage();
       
-      // First, get the dimensions of the screenshot
       await page.setContent(`<img id="screenshot" src="data:image/png;base64,${screenshotBase64}" />`);
       
-      // Wait a bit for the image to load
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Get the dimensions
       const dimensions = await page.evaluate(() => {
         const img = document.getElementById('screenshot') as HTMLImageElement;
         return img ? { width: img.naturalWidth, height: img.naturalHeight } : { width: 800, height: 600 };
       });
       
-      // Determine if we need to resize the final image
       const needsResize = targetWidth && targetHeight;
       
-      // Set initial dimensions for the container
       const containerWidth = dimensions.width;
       const containerHeight = dimensions.height;
       
-      // Determine the appropriate corner radius based on the device dimensions and type
-      let cornerRadiusPercent = 22; // Default for Android compact
-      
+      let cornerRadiusPercent = 30; 
       if (!isAndroid) {
-        // iPhone corner radius
-        cornerRadiusPercent = isPill ? 22 : 28; // Pill devices have slightly less rounded corners
+        if(isPill) {
+          cornerRadiusPercent = 32; 
+        } else {
+          cornerRadiusPercent = 30; 
+        }
       } else {
-        // Android corner radius
-        // For medium Android devices, use a smaller corner radius
         if (androidSize === 'medium') {
-          cornerRadiusPercent = 6; // Medium Android devices have less rounded corners
+          cornerRadiusPercent = 6;
         }
       }
       
       const cornerRadius = Math.min(containerWidth, containerHeight) * (cornerRadiusPercent / 100);
       
-      // Now create the overlay HTML
       const html = `
         <!DOCTYPE html>
         <html>
@@ -336,20 +304,16 @@ async function overlayFrameOnScreenshot(
         </html>
       `;
       
-      // Set the content with the overlay
       await page.setContent(html);
       
-      // Set viewport to match the screenshot dimensions
       await page.setViewport({
         width: containerWidth,
         height: containerHeight,
         deviceScaleFactor: 1
       });
       
-      // Wait a bit for rendering
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Take the screenshot
       await page.screenshot({ 
         path: outputPath, 
         type: 'png',
@@ -358,18 +322,14 @@ async function overlayFrameOnScreenshot(
       
       console.log(chalk.green(`Successfully overlaid frame on screenshot: ${outputPath}`));
       
-      // If target dimensions are specified, resize the image
       if (needsResize) {
         console.log(chalk.gray(`Resizing image to ${targetWidth}x${targetHeight}...`));
         
-        // Create a new page for resizing
         const resizePage = await browser.newPage();
         
-        // Read the framed image
         const framedImageBuffer = await fs.readFile(outputPath);
         const framedImageBase64 = framedImageBuffer.toString('base64');
         
-        // Get the dimensions of the framed image
         await resizePage.setContent(`<img id="framed" src="data:image/png;base64,${framedImageBase64}" />`);
         await new Promise(resolve => setTimeout(resolve, 500));
         
@@ -378,12 +338,10 @@ async function overlayFrameOnScreenshot(
           return img ? { width: img.naturalWidth, height: img.naturalHeight } : { width: 800, height: 600 };
         });
         
-        // Calculate the scale factor to fit the image perfectly
         const scaleX = targetWidth / framedDimensions.width;
         const scaleY = targetHeight / framedDimensions.height;
-        const scale = Math.max(scaleX, scaleY); // Use the larger scale to ensure full coverage
+        const scale = Math.max(scaleX, scaleY);
         
-        // Create HTML for precise resizing
         const resizeHtml = `
           <!DOCTYPE html>
           <html>
@@ -427,29 +385,25 @@ async function overlayFrameOnScreenshot(
           </html>
         `;
         
-        // Set the content with the resized image
         await resizePage.setContent(resizeHtml);
         
-        // Set viewport to match the target dimensions
         await resizePage.setViewport({
           width: targetWidth,
           height: targetHeight,
           deviceScaleFactor: 1
         });
         
-        // Wait a bit for rendering
+
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Take the screenshot of the resized image with transparent background
         await resizePage.screenshot({ 
           path: outputPath, 
           type: 'png',
-          omitBackground: true // This helps eliminate any background color
+          omitBackground: true 
         });
         
         console.log(chalk.green(`Successfully resized image to ${targetWidth}x${targetHeight}: ${outputPath}`));
         
-        // Close the resize page
         await resizePage.close();
       }
     } finally {
