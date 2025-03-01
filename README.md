@@ -561,10 +561,7 @@ This software is dual-licensed:
 ### For Individual/Open Source Use
 MIT © [Person98 LLC - Jace Sleeman (@TheRealPerson98)](https://github.com/TheRealPerson98)
 
-### For Commercial Use
-[Decheck License](https://decheck.xyz/license) © [Person98 LLC - Jace Sleeman]
-
-This software can be used freely in personal and open-source projects. For commercial use, please refer to the Decheck license terms or contact for licensing options. 
+This software can be used freely in personal and open-source projects. For commercial use, please refer to the license terms or contact for licensing options. 
 
 ---
 
