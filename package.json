@@ -1,6 +1,6 @@
 {
   "name": "expo-screenshotter",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "A tool to take screenshots of Expo apps at different screen sizes",
   "main": "dist/index.js",
   "bin": {
