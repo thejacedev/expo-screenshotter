@@ -10,7 +10,7 @@ import { spawn } from 'child_process';
 import readline from 'readline';
 import { detectExpoRoutes } from './utils/routeDetector';
 import inquirer from 'inquirer';
-import glob from 'glob';
+import { globSync } from 'glob';
 
 const program = new Command();
 
@@ -395,7 +395,7 @@ program
       console.log(chalk.blue(`Generating report from screenshots in ${screenshotDir}...`));
       
       // Find all image files in the directory and subdirectories
-      const imageFiles = glob.sync('**/*.{png,jpg,jpeg}', { cwd: screenshotDir });
+      const imageFiles = globSync('**/*.{png,jpg,jpeg}', { cwd: screenshotDir });
       
       if (imageFiles.length === 0) {
         console.log(chalk.yellow('No screenshot images found in the directory.'));
