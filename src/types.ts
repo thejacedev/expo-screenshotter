@@ -45,6 +45,7 @@ export interface ScreenshotConfig {
   fullPage?: boolean;
   useDeviceFrame?: boolean;
   deviceType?: 'iphone' | 'android';
+  generateReport?: boolean;
   iphoneOptions?: {
     pill?: boolean;
     color?: 'Gold' | 'Space Black' | 'Silver' | 'Deep Purple' | 'Starlight' | 'Midnight' | 'Red' | 'Blue';

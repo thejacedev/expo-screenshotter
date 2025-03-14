@@ -41,6 +41,7 @@
         <li>🤖 Android frames in different sizes (compact or medium) and colors</li>
         <li>🖱️ Interactive mode - type text, click buttons, and wait before taking screenshots</li>
         <li>🔍 Enhanced route detection for Expo Router projects with interactive selection</li>
+        <li>📊 Beautiful HTML report generation for easy sharing and viewing</li>
       </ul>
     </td>
   </tr>
@@ -50,15 +51,9 @@
 
 ---
 
-## 🆕 What's New in v0.3.0
+## 🆕 What's New in v0.4.0
 
-- **Interactive Route Selection**: Choose routes using a checkbox interface with arrow keys and space bar
-- **Improved Expo Router Detection**: Better detection of routes in Expo Router projects, including tab navigation and dynamic routes
-- **Simplified Route Selection Flow**: Three clear options for route selection:
-  - Select specific routes interactively
-  - Use all detected routes
-  - Use default routes
-- **Enhanced Tab Route Detection**: Automatically detects tab routes from Expo Router tab layouts
+- **Screenshot Report Generation**: Automatically generate a beautiful HTML report of all screenshots taken
 
 ---
 
@@ -108,7 +103,7 @@ If you're using this tool as a dependency in your project, you may need to creat
 
 ## 📋 Usage
 
-There are two main commands:
+There are three main commands:
 
 ### Initialize Configuration
 
@@ -141,6 +136,18 @@ expo-screenshotter capture
 ```
 
 This will use your `expo-screenshotter.json` configuration to take screenshots. Make sure your Expo web app is running first with `expo start --web`.
+
+### Generate Report
+
+```bash
+expo-screenshotter report
+```
+
+This will generate an HTML report from existing screenshots in your output directory. You can specify a custom directory with the `--dir` option:
+
+```bash
+expo-screenshotter report --dir ./my-screenshots
+```
 
 ---
 
@@ -298,6 +305,7 @@ The configuration file controls which routes to screenshot, at what sizes, and w
   "waitForSelector": "#my-element",
   "fullPage": false,
   "useDeviceFrame": false,
+  "generateReport": true,
   "iphoneOptions": {
     "pill": true,
     "color": "Space Black"
@@ -322,6 +330,7 @@ The configuration file controls which routes to screenshot, at what sizes, and w
 - `fullPage`: Set to `true` to capture the entire scrollable content for all sizes (default: false)
 - `useDeviceFrame`: Set to `true` to place all screenshots inside device frames (default: false)
 - `deviceType`: Default device frame type to use ('iphone' or 'android')
+- `generateReport`: Set to `true` to automatically generate an HTML report of all screenshots (default: true)
 - `iphoneOptions`: Options for iPhone frames:
   - `pill`: Set to `true` for pill-style (iPhone 14 Pro+) or `false` for notch-style (iPhone 13, 14)
   - `color`: iPhone color ('Gold', 'Space Black', 'Silver', 'Deep Purple', 'Starlight', 'Midnight', 'Red', 'Blue')
@@ -476,6 +485,51 @@ For example, to fill out a form and click a button before taking screenshots:
 }
 ```
 </details>
+
+---
+
+## 📊 Screenshot Report
+
+The tool can automatically generate a beautiful HTML report of all screenshots taken. This makes it easy to view and share your screenshots with team members or clients.
+
+<details>
+<summary><b>Report Features</b></summary>
+
+- **Visual Grid Layout**: All screenshots are displayed in a responsive grid layout
+- **Screenshot Information**: Each screenshot card shows the view name, size, and file path
+- **Interactive UI**: Hover effects and clean design for easy browsing
+- **Automatic Generation**: Reports can be generated automatically during capture or separately with the `report` command
+
+</details>
+
+### Enabling Report Generation
+
+You can enable automatic report generation in your configuration file:
+
+```json
+{
+  "generateReport": true,
+  // ... other configuration options
+}
+```
+
+This option is enabled by default in new configurations created with the `init` command.
+
+### Generating Reports Separately
+
+You can also generate a report from existing screenshots without recapturing them:
+
+```bash
+expo-screenshotter report
+```
+
+This command will scan your output directory for screenshots and generate an HTML report. You can specify a custom directory with the `--dir` option:
+
+```bash
+expo-screenshotter report --dir ./my-screenshots
+```
+
+The report will be saved as `screenshot-report.html` in your output directory.
 
 ---
 

@@ -16,6 +16,7 @@ export async function takeScreenshots(config: ScreenshotConfig): Promise<void> {
     fullPage = false,
     useDeviceFrame = false,
     deviceType = 'iphone',
+    generateReport = false,
     iphoneOptions = { pill: true, color: 'Space Black' },
     androidOptions = { size: 'medium', color: 'black' }
   } = config;
@@ -32,6 +33,9 @@ export async function takeScreenshots(config: ScreenshotConfig): Promise<void> {
   try {
     const page = await browser.newPage();
     
+    // Track all screenshots taken for the report
+    const screenshotsTaken: { view: string; size: string; path: string }[] = [];
+
     for (const view of views) {
       console.log(chalk.blue(`Processing view: ${view.name}`));
       
@@ -51,22 +55,48 @@ export async function takeScreenshots(config: ScreenshotConfig): Promise<void> {
         }
       }
       
+      // Wait for the page to be fully loaded
       await new Promise(resolve => setTimeout(resolve, waitTime));
       
+      // Perform interactions if specified
       if (view.interactions && view.interactions.length > 0) {
-        console.log(chalk.blue(`Performing ${view.interactions.length} interactions for view: ${view.name}`));
+        console.log(chalk.gray(`Performing ${view.interactions.length} interactions...`));
         await performInteractions(page, view.interactions);
         
         if (view.waitAfterInteractions) {
-          console.log(chalk.gray(`Waiting ${view.waitAfterInteractions}ms after interactions...`));
           await new Promise(resolve => setTimeout(resolve, view.waitAfterInteractions));
         }
       }
       
       for (const size of sizes) {
-        await takeScreenshotForSize(page, view, size, viewDir, fullPage, useDeviceFrame, deviceType, iphoneOptions, androidOptions);
+        const screenshotPath = await takeScreenshotForSize(
+          page, 
+          view, 
+          size, 
+          viewDir, 
+          fullPage, 
+          useDeviceFrame,
+          deviceType,
+          iphoneOptions,
+          androidOptions
+        );
+        
+        // Add to screenshots taken list for the report
+        if (screenshotPath) {
+          screenshotsTaken.push({
+            view: view.name,
+            size: size.name,
+            path: screenshotPath
+          });
+        }
       }
     }
+    
+    // Generate report if enabled
+    if (generateReport) {
+      await generateScreenshotReport(screenshotsTaken, outputDir);
+    }
+    
   } finally {
     await browser.close();
   }
@@ -138,7 +168,7 @@ async function takeScreenshotForSize(
   defaultDeviceType: 'iphone' | 'android',
   defaultIphoneOptions: { pill?: boolean; color?: string },
   defaultAndroidOptions: { size?: 'compact' | 'medium'; color?: 'black' | 'silver' }
-): Promise<void> {
+): Promise<string> {
   const { width, height, name, scrollX = 0, scrollY = 0 } = size;
   
 
@@ -233,8 +263,123 @@ async function takeScreenshotForSize(
     
     console.log(chalk.green(`Applied ${deviceType} frame to screenshot: ${outputPath}`));
   }
+  
+  // Return the path to the screenshot
+  return outputPath;
 }
 
 function sanitizeFilename(name: string): string {
   return name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+}
+
+/**
+ * Generates a summary report of all screenshots taken
+ */
+async function generateScreenshotReport(
+  screenshots: { view: string; size: string; path: string }[],
+  outputDir: string
+): Promise<void> {
+  console.log(chalk.blue('Generating screenshot report...'));
+  
+  const reportPath = path.join(outputDir, 'screenshot-report.html');
+  
+  // Create HTML content
+  let htmlContent = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Screenshot Report</title>
+      <style>
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+          line-height: 1.6;
+          color: #333;
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 20px;
+        }
+        h1 {
+          color: #2c3e50;
+          border-bottom: 2px solid #eee;
+          padding-bottom: 10px;
+        }
+        .report-time {
+          color: #7f8c8d;
+          font-size: 0.9em;
+          margin-bottom: 30px;
+        }
+        .screenshot-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+          gap: 20px;
+        }
+        .screenshot-card {
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          overflow: hidden;
+          transition: transform 0.3s ease;
+        }
+        .screenshot-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .screenshot-img {
+          width: 100%;
+          height: 200px;
+          object-fit: cover;
+          border-bottom: 1px solid #eee;
+        }
+        .screenshot-info {
+          padding: 15px;
+        }
+        .screenshot-title {
+          font-weight: bold;
+          margin: 0 0 5px 0;
+        }
+        .screenshot-size {
+          color: #7f8c8d;
+          font-size: 0.9em;
+        }
+        .screenshot-path {
+          color: #3498db;
+          font-size: 0.8em;
+          word-break: break-all;
+        }
+      </style>
+    </head>
+    <body>
+      <h1>Screenshot Report</h1>
+      <div class="report-time">Generated on ${new Date().toLocaleString()}</div>
+      
+      <div class="screenshot-grid">
+  `;
+  
+  // Add each screenshot to the report
+  screenshots.forEach(screenshot => {
+    // Get relative path for display
+    const relativePath = path.relative(outputDir, screenshot.path);
+    
+    htmlContent += `
+      <div class="screenshot-card">
+        <img class="screenshot-img" src="${relativePath}" alt="${screenshot.view} - ${screenshot.size}">
+        <div class="screenshot-info">
+          <div class="screenshot-title">${screenshot.view}</div>
+          <div class="screenshot-size">${screenshot.size}</div>
+          <div class="screenshot-path">${relativePath}</div>
+        </div>
+      </div>
+    `;
+  });
+  
+  htmlContent += `
+      </div>
+    </body>
+    </html>
+  `;
+  
+  // Write the report file
+  await fs.writeFile(reportPath, htmlContent);
+  console.log(chalk.green(`Screenshot report generated at: ${reportPath}`));
 }

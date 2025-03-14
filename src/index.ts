@@ -10,6 +10,7 @@ import { spawn } from 'child_process';
 import readline from 'readline';
 import { detectExpoRoutes } from './utils/routeDetector';
 import inquirer from 'inquirer';
+import glob from 'glob';
 
 const program = new Command();
 
@@ -289,7 +290,8 @@ program
         outputDir: './screenshots',
         expoUrl: 'http://localhost:8081',
         waitTime: 2000,
-        useDeviceFrame: false  
+        useDeviceFrame: false,
+        generateReport: true  
       };
       
       await fs.writeJSON(configPath, defaultConfig, { spaces: 2 });
@@ -375,6 +377,59 @@ program
     }
   });
 
+program
+  .command('report')
+  .description('Generate a report from existing screenshots')
+  .option('-d, --dir <path>', 'Directory containing screenshots', './screenshots')
+  .action(async (options) => {
+    try {
+      const screenshotDir = path.resolve(process.cwd(), options.dir);
+      
+      if (!await fs.pathExists(screenshotDir)) {
+        console.log(chalk.red(`Screenshot directory not found: ${options.dir}`));
+        console.log(chalk.yellow('Make sure you have captured screenshots first with "expo-screenshotter capture"'));
+        rl.close();
+        return;
+      }
+      
+      console.log(chalk.blue(`Generating report from screenshots in ${screenshotDir}...`));
+      
+      // Find all image files in the directory and subdirectories
+      const imageFiles = glob.sync('**/*.{png,jpg,jpeg}', { cwd: screenshotDir });
+      
+      if (imageFiles.length === 0) {
+        console.log(chalk.yellow('No screenshot images found in the directory.'));
+        rl.close();
+        return;
+      }
+      
+      console.log(chalk.blue(`Found ${imageFiles.length} screenshots.`));
+      
+      // Create screenshot data for the report
+      const screenshots = imageFiles.map((file: string) => {
+        const fullPath = path.join(screenshotDir, file);
+        const dirName = path.dirname(file);
+        const viewName = dirName === '.' ? 'Unknown' : dirName;
+        const fileName = path.basename(file, path.extname(file));
+        
+        return {
+          view: viewName,
+          size: fileName,
+          path: fullPath
+        };
+      });
+      
+      // Generate the report
+      await generateScreenshotReport(screenshots, screenshotDir);
+      console.log(chalk.green('Report generated successfully!'));
+      rl.close();
+    } catch (error) {
+      console.error(chalk.red('Error generating report:'), error);
+      rl.close();
+      process.exit(1);
+    }
+  });
+
 program.parse(process.argv);
 
 process.on('exit', () => {
@@ -401,4 +456,114 @@ const selectRoutesInteractively = async (routes: View[]): Promise<View[]> => {
   ]);
   
   return selectedRoutes;
-}; 
+};
+
+/**
+ * Generates a summary report of all screenshots taken
+ */
+async function generateScreenshotReport(
+  screenshots: { view: string; size: string; path: string }[],
+  outputDir: string
+): Promise<void> {
+  const reportPath = path.join(outputDir, 'screenshot-report.html');
+  
+  // Create HTML content
+  let htmlContent = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Screenshot Report</title>
+      <style>
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+          line-height: 1.6;
+          color: #333;
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 20px;
+        }
+        h1 {
+          color: #2c3e50;
+          border-bottom: 2px solid #eee;
+          padding-bottom: 10px;
+        }
+        .report-time {
+          color: #7f8c8d;
+          font-size: 0.9em;
+          margin-bottom: 30px;
+        }
+        .screenshot-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+          gap: 20px;
+        }
+        .screenshot-card {
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          overflow: hidden;
+          transition: transform 0.3s ease;
+        }
+        .screenshot-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .screenshot-img {
+          width: 100%;
+          height: 200px;
+          object-fit: cover;
+          border-bottom: 1px solid #eee;
+        }
+        .screenshot-info {
+          padding: 15px;
+        }
+        .screenshot-title {
+          font-weight: bold;
+          margin: 0 0 5px 0;
+        }
+        .screenshot-size {
+          color: #7f8c8d;
+          font-size: 0.9em;
+        }
+        .screenshot-path {
+          color: #3498db;
+          font-size: 0.8em;
+          word-break: break-all;
+        }
+      </style>
+    </head>
+    <body>
+      <h1>Screenshot Report</h1>
+      <div class="report-time">Generated on ${new Date().toLocaleString()}</div>
+      
+      <div class="screenshot-grid">
+  `;
+  
+  // Add each screenshot to the report
+  screenshots.forEach(screenshot => {
+    // Get relative path for display
+    const relativePath = path.relative(outputDir, screenshot.path);
+    
+    htmlContent += `
+      <div class="screenshot-card">
+        <img class="screenshot-img" src="${relativePath}" alt="${screenshot.view} - ${screenshot.size}">
+        <div class="screenshot-info">
+          <div class="screenshot-title">${screenshot.view}</div>
+          <div class="screenshot-size">${screenshot.size}</div>
+          <div class="screenshot-path">${relativePath}</div>
+        </div>
+      </div>
+    `;
+  });
+  
+  htmlContent += `
+      </div>
+    </body>
+    </html>
+  `;
+  
+  // Write the report file
+  await fs.writeFile(reportPath, htmlContent);
+  console.log(chalk.green(`Screenshot report generated at: ${reportPath}`));
+} 
