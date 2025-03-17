@@ -51,7 +51,7 @@
     "@types/glob": "^8.1.0",
     "@types/inquirer": "^9.0.7",
     "@types/jest": "^29.5.12",
-    "@types/node": "^20.10.5",
+    "@types/node": "^22.13.10",
     "depcheck": "^1.4.7",
     "eslint": "^9.21.0",
     "express": "^4.21.2",
