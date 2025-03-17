@@ -37,7 +37,7 @@
   },
   "homepage": "https://github.com/TheRealPerson98/expo-screenshotter#readme",
   "dependencies": {
-    "chalk": "^4.1.2",
+    "chalk": "^5.4.1",
     "commander": "^13.1.0",
     "expo-screenshotter": "file:",
     "fs-extra": "^11.2.0",
