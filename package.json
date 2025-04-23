@@ -43,7 +43,7 @@
     "fs-extra": "^11.2.0",
     "glob": "^10.3.10",
     "inquirer": "^12.4.2",
-    "puppeteer": "^22.0.0"
+    "puppeteer": "^24.6.1"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
