@@ -3,9 +3,9 @@
 <div align="center">
 
 [![npm version](https://img.shields.io/npm/v/expo-screenshotter.svg)](https://www.npmjs.com/package/expo-screenshotter)
-[![License](https://img.shields.io/badge/license-MIT%2FDecheck-blue.svg)](https://github.com/TheRealPerson98/expo-screenshotter/blob/main/LICENSE)
-[![GitHub Issues](https://img.shields.io/github/issues/TheRealPerson98/expo-screenshotter.svg)](https://github.com/TheRealPerson98/expo-screenshotter/issues)
-[![Build Status](https://github.com/TheRealPerson98/expo-screenshotter/workflows/CI/badge.svg)](https://github.com/TheRealPerson98/expo-screenshotter/actions)
+[![License](https://img.shields.io/badge/license-MIT%2FDecheck-blue.svg)](https://github.com/thejacedev/expo-screenshotter/blob/main/LICENSE)
+[![GitHub Issues](https://img.shields.io/github/issues/thejacedev/expo-screenshotter.svg)](https://github.com/thejacedev/expo-screenshotter/issues)
+[![Build Status](https://github.com/thejacedev/expo-screenshotter/workflows/CI/badge.svg)](https://github.com/thejacedev/expo-screenshotter/actions)
 
 </div>
 
@@ -581,7 +581,7 @@ The report will be saved as `screenshot-report.html` in your output directory.
 
 ```bash
 # Clone the repository
-git clone https://github.com/TheRealPerson98/expo-screenshotter.git
+git clone https://github.com/thejacedev/expo-screenshotter.git
 cd expo-screenshotter
 
 # Install dependencies
@@ -613,7 +613,7 @@ npm run lint:fix
 This software is dual-licensed:
 
 ### For Individual/Open Source Use
-MIT © [Person98 LLC - Jace Sleeman (@TheRealPerson98)](https://github.com/TheRealPerson98)
+MIT © [Person98 LLC - Jace Sleeman (@thejacedev)](https://github.com/thejacedev)
 
 This software can be used freely in personal and open-source projects. For commercial use, please refer to the license terms or contact for licensing options. 
 

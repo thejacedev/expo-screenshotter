@@ -1,6 +1,6 @@
 {
   "name": "expo-screenshotter",
-  "version": "0.5.1",
+  "version": "1.0.0",
   "description": "A tool to take screenshots of Expo apps at different screen sizes",
   "main": "dist/index.js",
   "bin": {
@@ -26,16 +26,16 @@
     "react-native",
     "testing"
   ],
-  "author": "Jace Sleeman (@TheRealPerson98)",
+  "author": "Jace Sleeman (@thejacedev)",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/TheRealPerson98/expo-screenshotter"
+    "url": "https://github.com/thejacedev/expo-screenshotter"
   },
   "bugs": {
-    "url": "https://github.com/TheRealPerson98/expo-screenshotter/issues"
+    "url": "https://github.com/thejacedev/expo-screenshotter/issues"
   },
-  "homepage": "https://github.com/TheRealPerson98/expo-screenshotter#readme",
+  "homepage": "https://github.com/thejacedev/expo-screenshotter#readme",
   "dependencies": {
     "chalk": "^5.4.1",
     "commander": "^13.1.0",
