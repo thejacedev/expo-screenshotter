@@ -17,6 +17,7 @@ export async function takeScreenshots(config: ScreenshotConfig): Promise<void> {
     useDeviceFrame = false,
     deviceType = 'iphone',
     generateReport = false,
+    deviceScaleFactor = 1,
     iphoneOptions = { pill: true, color: 'Space Black' },
     androidOptions = { size: 'medium', color: 'black' }
   } = config;
@@ -77,6 +78,7 @@ export async function takeScreenshots(config: ScreenshotConfig): Promise<void> {
           fullPage, 
           useDeviceFrame,
           deviceType,
+          deviceScaleFactor,
           iphoneOptions,
           androidOptions
         );
@@ -166,6 +168,7 @@ async function takeScreenshotForSize(
   defaultFullPage: boolean,
   defaultUseDeviceFrame: boolean,
   defaultDeviceType: 'iphone' | 'android',
+  defaultDeviceScaleFactor: number,
   defaultIphoneOptions: { pill?: boolean; color?: string },
   defaultAndroidOptions: { size?: 'compact' | 'medium'; color?: 'black' | 'silver' }
 ): Promise<string> {
@@ -189,6 +192,9 @@ async function takeScreenshotForSize(
   const androidOptions = size.androidOptions || defaultAndroidOptions;
   
 
+  const deviceScaleFactor = size.deviceScaleFactor || defaultDeviceScaleFactor;
+  
+
   let sizeDescription = `${name} (${width}x${height})`;
   if (scrollX > 0 || scrollY > 0) {
     sizeDescription += ` with scroll position (${scrollX},${scrollY})`;
@@ -205,7 +211,7 @@ async function takeScreenshotForSize(
   }
   console.log(chalk.gray(`Taking screenshot for size: ${sizeDescription}`));
   
-  await page.setViewport({ width, height });
+  await page.setViewport({ width, height, deviceScaleFactor });
   
   await new Promise(resolve => setTimeout(resolve, 500));
   

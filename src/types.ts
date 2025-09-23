@@ -2,6 +2,7 @@ export interface ScreenSize {
   width: number;
   height: number;
   name: string;
+  deviceScaleFactor?: number;
   scrollY?: number;
   scrollX?: number;
   fullPage?: boolean;
@@ -40,6 +41,7 @@ export interface ScreenshotConfig {
   sizes: ScreenSize[];
   outputDir: string;
   expoUrl: string;
+  deviceScaleFactor?: number;
   waitForSelector?: string;
   waitTime?: number;
   fullPage?: boolean;
