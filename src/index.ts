@@ -285,12 +285,19 @@ program
             name: 'Android with Frame',
             useDeviceFrame: true,
             deviceType: 'android'
+          },
+          {
+            width: 375,
+            height: 812,
+            name: 'iPhone X High Res',
+            deviceScaleFactor: 3
           }
         ],
         outputDir: './screenshots',
         expoUrl: 'http://localhost:8081',
         waitTime: 2000,
         useDeviceFrame: false,
+        deviceScaleFactor: 2,
         generateReport: true  
       };
       
