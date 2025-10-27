@@ -38,7 +38,7 @@
   "homepage": "https://github.com/thejacedev/expo-screenshotter#readme",
   "dependencies": {
     "chalk": "^5.4.1",
-    "commander": "^13.1.0",
+    "commander": "^14.0.2",
     "expo-screenshotter": "file:",
     "fs-extra": "^11.2.0",
     "glob": "^11.0.2",
